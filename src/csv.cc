@@ -60,13 +60,18 @@ find_split(
   Split split;
 
   size_t off = 0;
-  bool in_quote = false;
 
   for (size_t i = 0; i < buffer.len; ++i) {
     char const c = buffer.ptr[i];
-    if (c == quote) 
-      in_quote = !in_quote;
-    else if (! in_quote && (c == sep || c == eol)) {
+
+    // Look for a quote at the beginning of a field, then fast-forward.
+    if (c == quote && off == i) {
+      for (i += 1; i < buffer.len && buffer.ptr[i] != quote; ++i)
+        ;
+      // FIXME: Check for unclosed quote.
+    }
+
+    if (c == sep || c == eol) {
       // End the field.
       split.fields.push_back({off, i - off});
       off = i + 1;
