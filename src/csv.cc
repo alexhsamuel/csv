@@ -101,22 +101,6 @@ find_split(
 
 //------------------------------------------------------------------------------
 
-class StringCol
-{
-public:
-
-  StringCol(size_t width_hint=1);
-  void add(Buffer const buf);
-
-private:
-
-  size_t width_ = 0;
-
-};
-
-
-//------------------------------------------------------------------------------
-
 int
 main(
   int const argc,
