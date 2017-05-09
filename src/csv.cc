@@ -60,6 +60,7 @@ find_split(
   Split split;
 
   size_t off = 0;
+  size_t field_idx = 0;
 
   for (size_t i = 0; i < buffer.len; ++i) {
     char const c = buffer.ptr[i];
@@ -75,12 +76,15 @@ find_split(
       // End the field.
       split.fields.push_back({off, i - off});
       off = i + 1;
-      if (c == eol) 
-        split.lines.push_back(split.fields.size());
+      if (c == eol) {
+        // End the line.
+        split.lines.push_back(field_idx);
+        field_idx = split.fields.size();
+      }
     }
     // FIXME: Trailing field?
   }
-  // FIXME: Trailing line?
+  split.lines.push_back(field_idx);
 
   return split;
 }
