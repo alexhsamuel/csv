@@ -18,15 +18,21 @@ struct Buffer
 
 struct Field
 {
-  size_t off;
-  size_t len;
+  size_t off;  // byte offset into buffer
+  size_t len;  // number of bytes in field
 };
 
 
 struct Split
 {
+  struct Line
+  {
+    size_t idx;  // index of first field in fields
+    size_t num;  // number of fields in line
+  };
+
   std::vector<Field> fields;
-  std::vector<size_t> lines;
+  std::vector<Line> lines;
 };
 
 
@@ -61,6 +67,7 @@ find_split(
 
   size_t off = 0;
   size_t field_idx = 0;
+  size_t num_fields = 0;
 
   for (size_t i = 0; i < buffer.len; ++i) {
     char const c = buffer.ptr[i];
@@ -75,20 +82,40 @@ find_split(
     if (c == sep || c == eol) {
       // End the field.
       split.fields.push_back({off, i - off});
+      ++num_fields;
       off = i + 1;
       if (c == eol) {
         // End the line.
-        split.lines.push_back(field_idx);
+        split.lines.push_back({field_idx, num_fields});
         field_idx = split.fields.size();
+        num_fields = 0;
       }
     }
     // FIXME: Trailing field?
   }
-  split.lines.push_back(field_idx);
+  split.lines.push_back({field_idx, num_fields});
 
   return split;
 }
 
+
+//------------------------------------------------------------------------------
+
+class StringCol
+{
+public:
+
+  StringCol(size_t width_hint=1);
+  void add(Buffer const buf);
+
+private:
+
+  size_t width_ = 0;
+
+};
+
+
+//------------------------------------------------------------------------------
 
 int
 main(
@@ -111,9 +138,8 @@ main(
   std::cout << buf;
 
   auto const split = find_split(buf);
-  size_t i = 0;
   for (auto const line : split.lines) {
-    for (; i < line; ++i) {
+    for (auto i = line.idx; i < line.idx + line.num; ++i) {
       auto const& field = split.fields[i];
       // std::cout << field.off << '+' << field.len << ' ';
       std::cout << '[' << slice(buf, field) << ']';
