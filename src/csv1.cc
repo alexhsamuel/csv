@@ -2,11 +2,15 @@
 #include <fcntl.h>
 #include <iostream>
 #include <limits>
+#include <experimental/optional>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <vector>
 
+using std::experimental::optional;
+
 // FIXME: UTF-8 (and other encodings?)
+
 
 //------------------------------------------------------------------------------
 
@@ -156,6 +160,66 @@ split_columns(
 
 //------------------------------------------------------------------------------
 
+inline bool oadd(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_uaddll_overflow(a, b, &r); }
+inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddll_overflow(a, b, &r); }
+inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umulll_overflow(a, b, &r); }
+inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smulll_overflow(a, b, &r); }
+
+inline optional<uint64_t>
+parse_uint64(
+  Buffer const buf)
+{
+  if (buf.len == 0)
+    return {};
+
+  // FIXME: Accept leading +?
+
+  uint64_t val = 0;
+  for (auto p = buf.ptr; p < buf.ptr + buf.len; ++p) {
+    auto const c = *p;
+    if ('0' <= c && c <= '9') {
+      if (omul(val, 10, val) || oadd(val, c - '0', val))
+        return {};
+    }
+    else
+      return {};
+  }
+
+  return val;
+}
+
+
+inline uint8_t*
+parse_uint8(
+  Column const& col)
+{
+  uint8_t* arr = new uint8_t[col.size()];
+
+  for (auto i = 0; i < col.size(); ++i) {
+    auto const str = col[i];
+    auto const val = parse_uint64(str);
+    if (val && (*val & ~0xff) == 0)
+      arr[i] = (uint8_t) *val;
+    else {
+      delete[] arr;
+      return nullptr;
+    }
+  }
+
+  return arr;
+}
+
+
+void
+auto_convert_type(
+  Column const& col)
+{
+  
+}
+
+
+//------------------------------------------------------------------------------
+
 int
 main(
   int const argc,
@@ -179,7 +243,8 @@ main(
   auto const cols = split_columns(buf);
 
   for (auto const col : cols) {
-    std::cout << "COLUMN " << col.size() << "\n";
+    std::cout << "COLUMN size=" << col.size() << "\n";
+#if 0
     for (Column::size_type i = 0; i < col.size(); ++i) {
       std::cout << i << '.' << ' ';
       if (col[i].ptr == nullptr)
@@ -188,6 +253,17 @@ main(
         std::cout << col[i];
       std::cout << '\n';
     }
+#endif
+
+    auto const arr = parse_uint8(col);
+    if (arr == nullptr)
+      std::cout << "can't parse\n";
+    else {
+      for (Column::size_type i = 0; i < col.size(); ++i)
+        std::cout << (uint64_t) arr[i] << ' ';
+      std::cout << '\n';
+    }
+
     std::cout << '\n';
   }
 
