@@ -83,6 +83,19 @@ public:
     }
   }
 
+  inline size_type
+  max_width()
+    const
+  {
+    size_type max = 0;
+    for (    
+      auto i0 = offsets_.begin(), i1 = i0 + 1;
+      i1 != offsets_.end(); 
+      ++i0, ++i1)
+      max = std::max(max, (*i1 & ~MISSING) - (*i0 & ~MISSING));
+    return max;
+  }
+
 private:
 
   static constexpr auto MISSING = size_type(1) << (sizeof(size_type) * 8 - 1);
@@ -189,32 +202,52 @@ parse_uint64(
 }
 
 
-inline uint8_t*
-parse_uint8(
+struct Arr
+{
+  enum {
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_STR,
+  } 
+  type              = TYPE_INT;
+
+  int64_t int_min   = std::numeric_limits<int64_t>::min();
+  int64_t int_max   = std::numeric_limits<int64_t>::max();
+  double float_max  = std::numeric_limits<double>::max();
+  size_t str_len    = 0;
+
+  // FIXME: union?
+  int64_t* int_arr  = nullptr;
+  double* float_arr = nullptr;
+  char* str_arr     = nullptr;
+
+};
+
+
+struct StrArr
+{
+  size_t len;
+  size_t width;
+  char* arr;
+};
+
+
+StrArr
+parse_str_arr(
   Column const& col)
 {
-  uint8_t* arr = new uint8_t[col.size()];
+  auto const len = col.size();
+  // Compute the column width, which is the longest string length.
+  auto const width = col.max_width();
+  auto const arr = new char[len * width];
 
-  for (auto i = 0; i < col.size(); ++i) {
-    auto const str = col[i];
-    auto const val = parse_uint64(str);
-    if (val && (*val & ~0xff) == 0)
-      arr[i] = (uint8_t) *val;
-    else {
-      delete[] arr;
-      return nullptr;
-    }
+  for (Column::size_type i = 0; i < len; ++i) {
+    auto const field = col[i];
+    memcpy(arr + i * width, field.ptr, field.len);
+    memset(arr + i * width + field.len, 0, width - field.len);
   }
 
-  return arr;
-}
-
-
-void
-auto_convert_type(
-  Column const& col)
-{
-  
+  return {len, width, arr};
 }
 
 
@@ -243,27 +276,18 @@ main(
   auto const cols = split_columns(buf);
 
   for (auto const col : cols) {
-    std::cout << "COLUMN size=" << col.size() << "\n";
-#if 0
-    for (Column::size_type i = 0; i < col.size(); ++i) {
-      std::cout << i << '.' << ' ';
-      if (col[i].ptr == nullptr)
-        std::cout << "missing";
-      else
-        std::cout << col[i];
-      std::cout << '\n';
+    std::cout << "COLUMN size=" << col.size();
+    auto const arr = parse_str_arr(col);
+    std::cout << " width=" << arr.width << "\n";
+    for (size_t i = 0; i < arr.len; ++i) {
+      std::cout << i << '.' << ' ' << '[';
+      // for (char const* p = arr.arr + i * arr.width;
+      //      p < arr.arr + (i + 1) * arr.width;
+      //      ++p)
+      //   std::cout << *p;
+      std::cout << arr.arr + i * arr.width;
+      std::cout << ']' << '\n';
     }
-#endif
-
-    auto const arr = parse_uint8(col);
-    if (arr == nullptr)
-      std::cout << "can't parse\n";
-    else {
-      for (Column::size_type i = 0; i < col.size(); ++i)
-        std::cout << (uint64_t) arr[i] << ' ';
-      std::cout << '\n';
-    }
-
     std::cout << '\n';
   }
 
