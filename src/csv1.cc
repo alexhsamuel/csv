@@ -45,26 +45,26 @@ public:
     offsets_.push_back(0); 
   }
 
-  size_type size() const { return offsets_.size() - 1; }
+  inline size_type size() const { return offsets_.size() - 1; }
 
-  bool 
+  inline bool 
   started() 
     const 
   { 
     return offsets_.back() > chars_.size();
   }
 
-  void append(char c) { chars_.push_back(c); }
-  void finish() { offsets_.push_back(chars_.size()); }
+  inline void append(char c) { chars_.push_back(c); }
+  inline void finish() { offsets_.push_back(chars_.size()); }
 
-  void 
+  inline void 
   missing() 
   { 
     offsets_.back() |= MISSING; 
     finish(); 
   }
 
-  Buffer 
+  inline Buffer 
   operator[](
     size_type const idx)
     const
@@ -112,10 +112,10 @@ split_columns(
 
     if (c == eol) {
       // End the field.
-      cols[col_idx].finish();
+      cols[col_idx++].finish();
 
       // Remaining colums are missing in this row.
-      for (++col_idx; col_idx < cols.size(); ++col_idx) {
+      for (; col_idx < cols.size(); ++col_idx) {
         cols[col_idx].missing();
       }
 
@@ -141,12 +141,12 @@ split_columns(
     }
     else
       cols[col_idx].append(c);
-        
+
     // FIXME: Trailing field?
   }
 
   // Remaining colums are missing in this row.
-  if (cols[0].started())
+  if (col_idx > 0 || cols[0].started())
     for (; col_idx < cols.size(); ++col_idx)
       cols[col_idx].missing();
 
