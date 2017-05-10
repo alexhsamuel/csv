@@ -34,6 +34,8 @@ operator<<(
 
 //------------------------------------------------------------------------------
 
+// FIXME: Compute max width in column?
+
 class Column
 {
 public:
