@@ -175,35 +175,6 @@ split_columns(
 
 //------------------------------------------------------------------------------
 
-inline bool oadd(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_uaddll_overflow(a, b, &r); }
-inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddll_overflow(a, b, &r); }
-inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umulll_overflow(a, b, &r); }
-inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smulll_overflow(a, b, &r); }
-
-inline optional<uint64_t>
-parse_uint64(
-  Buffer const buf)
-{
-  if (buf.len == 0)
-    return {};
-
-  // FIXME: Accept leading +?
-
-  uint64_t val = 0;
-  for (auto p = buf.ptr; p < buf.ptr + buf.len; ++p) {
-    auto const c = *p;
-    if ('0' <= c && c <= '9') {
-      if (omul(val, 10, val) || oadd(val, c - '0', val))
-        return {};
-    }
-    else
-      return {};
-  }
-
-  return val;
-}
-
-
 struct Arr
 {
   enum {
@@ -255,6 +226,82 @@ parse_str_arr(
 
 //------------------------------------------------------------------------------
 
+inline bool oadd(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_uaddll_overflow(a, b, &r); }
+inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddll_overflow(a, b, &r); }
+inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umulll_overflow(a, b, &r); }
+inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smulll_overflow(a, b, &r); }
+
+inline optional<uint64_t>
+parse_uint64(
+  Buffer const buf)
+{
+  if (buf.len == 0)
+    return {};
+
+  // FIXME: Accept leading +?
+
+  uint64_t val = 0;
+  for (auto p = buf.ptr; p < buf.ptr + buf.len; ++p) {
+    auto const c = *p;
+    if ('0' <= c && c <= '9') {
+      if (omul(val, 10, val) || oadd(val, c - '0', val))
+        return {};
+    }
+    else
+      return {};
+  }
+
+  return val;
+}
+
+
+struct UInt64Arr
+{
+  size_t len;
+  uint64_t min;
+  uint64_t max;
+  uint64_t* arr;
+};
+
+
+inline optional<UInt64Arr>
+parse_uint64_arr(
+  Column const& col)
+{
+  auto const len = col.size();
+  if (len == 0)
+    return UInt64Arr{0, 0, 0, nullptr};
+
+  uint64_t min;
+  uint64_t max;
+  auto const arr = new uint64_t[len];
+
+  for (Column::size_type i = 0; i < len; ++i) {
+    auto const field = col[i];
+    auto const val = parse_uint64(field);
+    if (val) {
+      arr[i] = *val;
+      if (i == 0)
+        min = max = *val;
+      else {
+        if (*val < min)
+          min = *val;
+        if (*val > max)
+          max = *val;
+      }
+    }
+    else {
+      delete[] arr;
+      return {};
+    }
+  }
+
+  return UInt64Arr{len, min, max, arr};
+}
+
+
+//------------------------------------------------------------------------------
+
 int
 main(
   int const argc,
@@ -279,17 +326,29 @@ main(
 
   for (auto const col : cols) {
     std::cout << "COLUMN size=" << col.size();
-    auto const arr = parse_str_arr(col);
-    std::cout << " width=" << arr.width << "\n";
-    for (size_t i = 0; i < arr.len; ++i) {
-      std::cout << i << '.' << ' ' << '[';
-      // for (char const* p = arr.arr + i * arr.width;
-      //      p < arr.arr + (i + 1) * arr.width;
-      //      ++p)
-      //   std::cout << *p;
-      std::cout << arr.arr + i * arr.width;
-      std::cout << ']' << '\n';
+
+    auto const int_arr = parse_uint64_arr(col);
+    if (int_arr) {
+      std::cout << " type=uint64 min=" << int_arr->min 
+                << " max=" << int_arr->max << "\n";
+      for (size_t i = 0; i < int_arr->len; ++i)
+        std::cout << i << '.' << ' ' << int_arr->arr[i] << '\n';
     }
+
+    else {
+      auto const arr = parse_str_arr(col);
+      std::cout << " type=str width=" << arr.width << '\n';
+      for (size_t i = 0; i < arr.len; ++i) {
+        std::cout << i << '.' << ' ' << '[';
+        for (char const* p = arr.arr + i * arr.width;
+             p < arr.arr + (i + 1) * arr.width;
+             ++p)
+          std::cout << *p;
+        // std::cout << arr.arr + i * arr.width;
+        std::cout << ']' << '\n';
+      }
+    }
+
     std::cout << '\n';
   }
 
