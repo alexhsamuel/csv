@@ -247,8 +247,11 @@ inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddll_
 inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umulll_overflow(a, b, &r); }
 inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smulll_overflow(a, b, &r); }
 
+template<class T> inline optional<T> parse(Buffer const buf);
+
+template<>
 inline optional<uint64_t>
-parse_uint64(
+parse<uint64_t>(
   Buffer const buf)
 {
   if (buf.len == 0)
@@ -270,6 +273,48 @@ parse_uint64(
   return val;
 }
 
+
+template<>
+inline optional<int64_t>
+parse<int64_t>(
+  Buffer const buf)
+{
+  if (buf.len == 0)
+    // Empty string.
+    return {};
+
+  auto p = buf.ptr;
+  auto const end = buf.ptr + buf.len;
+  bool negative = false;
+  if (p[0] == '-') {
+    negative = true;
+    ++p;
+  }
+  else if (p[0] == '+')
+    ++p;
+
+  if (p == end)
+    // No digits.
+    return {};
+
+  int64_t val = 0;
+  while (p < end) {
+    auto const c = *p++;
+    if ('0' <= c && c <= '9') {
+      if (omul(val, 10, val) || oadd(val, negative ? '0' - c : c - '0', val))
+        // Overflow.
+        return {};
+    }
+    else
+      // Not a digit.
+      return {};
+  }
+
+  return val;
+}
+
+
+//------------------------------------------------------------------------------
 
 struct UInt64Arr
 {
@@ -297,7 +342,7 @@ parse_uint64_arr(
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
-    auto const val = parse_uint64(field);
+    auto const val = parse<uint64_t>(field);
     if (val) {
       vals.push_back(*val);
       if (i == 0)
@@ -319,37 +364,6 @@ parse_uint64_arr(
 
 
 //------------------------------------------------------------------------------
-
-inline optional<int64_t>
-parse_int64(
-  Buffer const buf)
-{
-  if (buf.len == 0)
-    return {};
-
-  auto p = buf.ptr;
-  bool negative = false;
-  if (p[0] == '-') {
-    negative = true;
-    ++p;
-  }
-  else if (p[0] == '+')
-    ++p;
-
-  uint64_t val = 0;
-  for (; p < buf.ptr + buf.len; ++p) {
-    auto const c = *p;
-    if ('0' <= c && c <= '9') {
-      if (omul(val, 10, val) || oadd(val, c - '0', val))
-        return {};
-    }
-    else
-      return {};
-  }
-
-  return negative ? -val : val;
-}
-
 
 struct Int64Arr
 {
@@ -377,7 +391,7 @@ parse_int64_arr(
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
-    auto const val = parse_int64(field);
+    auto const val = parse<int64_t>(field);
     if (val) {
       vals.push_back(*val);
       if (i == 0)
