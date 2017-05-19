@@ -320,6 +320,86 @@ parse_uint64_arr(
 
 //------------------------------------------------------------------------------
 
+inline optional<int64_t>
+parse_int64(
+  Buffer const buf)
+{
+  if (buf.len == 0)
+    return {};
+
+  auto p = buf.ptr;
+  bool negative = false;
+  if (p[0] == '-') {
+    negative = true;
+    ++p;
+  }
+  else if (p[0] == '+')
+    ++p;
+
+  uint64_t val = 0;
+  for (; p < buf.ptr + buf.len; ++p) {
+    auto const c = *p;
+    if ('0' <= c && c <= '9') {
+      if (omul(val, 10, val) || oadd(val, c - '0', val))
+        return {};
+    }
+    else
+      return {};
+  }
+
+  return negative ? -val : val;
+}
+
+
+struct Int64Arr
+{
+  using vals_type = std::vector<int64_t>;
+
+  size_t len;
+  int64_t min;
+  int64_t max;
+  vals_type vals;
+};
+
+
+inline optional<Int64Arr>
+parse_int64_arr(
+  Column const& col)
+{
+  auto const len = col.size();
+  if (len == 0)
+    return Int64Arr{0, 0, 0, {}};
+
+  int64_t min;
+  int64_t max;
+  Int64Arr::vals_type vals;
+  vals.reserve(len);
+
+  for (Column::size_type i = 0; i < len; ++i) {
+    auto const field = col[i];
+    auto const val = parse_int64(field);
+    if (val) {
+      vals.push_back(*val);
+      if (i == 0)
+        min = max = *val;
+      else {
+        if (*val < min)
+          min = *val;
+        if (*val > max)
+          max = *val;
+      }
+    }
+    else
+      return {};
+  }
+
+  assert(vals.size() == len);
+  return Int64Arr{len, min, max, std::move(vals)};
+}
+
+
+//------------------------------------------------------------------------------
+
 int
 main(
   int const argc,
@@ -344,9 +424,9 @@ main(
 
   for (auto const& col : cols) {
     // Try an int array.
-    auto const int_arr = parse_uint64_arr(col);
+    auto const int_arr = parse_int64_arr(col);
     if (int_arr) {
-      std::cout << "uint64 column len=" << int_arr->len
+      std::cout << "int64 column len=" << int_arr->len
                 << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
       for (size_t i = 0; i < int_arr->len; ++i)
         std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
