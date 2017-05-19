@@ -18,7 +18,5 @@ CXXFLAGS    	= $(CFLAGS) -std=c++14
 
 #-------------------------------------------------------------------------------
 
-src/csv1:   	    	src/parse_float.o
-
-src/test_parse_float:	src/parse_float.o
+src/csv1:   	    	
 

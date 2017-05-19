@@ -322,8 +322,6 @@ parse<int64_t>(
 }
 
 
-extern "C" double str2dbl(char const* s);
-
 template<>
 inline optional<float64_t>
 parse<float64_t>(
@@ -338,8 +336,12 @@ parse<float64_t>(
   memcpy(string, buf.ptr, buf.len);
   string[buf.len] = 0;
 
-  auto const val = str2dbl(string);
-  return val;
+  char* endptr;
+  auto const val = strtod(string, &endptr);
+  if (endptr == &string[buf.len])
+    return val;
+  else
+    return {};
 }
 
 
