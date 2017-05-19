@@ -1,7 +1,11 @@
-/*
-Copyright © 2011-2016, Grzegorz Kraszewski.
-Copyright © 2017, Alex Samuel.
-*/
+/*------------------------------------------------------------------------------
+
+Based on 
+https://github.com/grzegorz-kraszewski/stringtofloat
+
+Copyright (C) 2016 Grzegorz Kraszewski.
+
+------------------------------------------------------------------------------*/
 
 /*======================================================================*/
 /* IMPORTANT                                                            */
