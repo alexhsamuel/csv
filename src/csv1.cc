@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
 #include <limits>
@@ -11,6 +12,8 @@ using std::experimental::optional;
 
 // FIXME: UTF-8 (and other encodings?)
 
+// FIXME: static assert that this is right.
+using float64_t = double;
 
 //------------------------------------------------------------------------------
 
@@ -36,6 +39,10 @@ operator<<(
 
 // FIXME: Instead of this complicated nonsense with special bits, just provide
 // an iterator interface.
+
+// FIXME: Track whether there are empty fields (or min width).
+
+// FIXME: Track whether there are non-nit chars, non-float chars.
 
 class Column
 {
@@ -315,6 +322,27 @@ parse<int64_t>(
 }
 
 
+extern "C" double str2dbl(char const* s);
+
+template<>
+inline optional<float64_t>
+parse<float64_t>(
+  Buffer const buf)
+{
+  if (buf.len == 0)
+    // Empty string.
+    return {};
+
+  // FIXME: This is terrible.
+  char string[buf.len + 1];
+  memcpy(string, buf.ptr, buf.len);
+  string[buf.len] = 0;
+
+  auto const val = str2dbl(string);
+  return val;
+}
+
+
 //------------------------------------------------------------------------------
 
 template<class T>
@@ -405,23 +433,35 @@ main(
         std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
     }
 
-    // Fall back to a string array.
     else {
-      auto const arr = parse_str_arr(col);
-      std::cout << "str column len=" << arr.len
-                << " width=" << arr.width << '\n';
-      for (size_t i = 0; i < arr.len; ++i) {
-        std::cout << i << '.' << ' ' << '[';
-        char const* base = arr.chars.data();
-        for (char const* p = base + i * arr.width;
-             p < base + (i + 1) * arr.width;
-             ++p)
-          if (*p == 0)
-            std::cout << "·";
-          else
-            std::cout << *p;
-        // std::cout << &arr.chars[i * arr.width];
-        std::cout << ']' << '\n';
+      // Try float array.
+      auto const float_arr = parse_number_arr<float64_t>(col);
+      if (float_arr) {
+        std::cout << "float64 column len=" << float_arr->len
+                  << " min=" << float_arr->min
+                  << " max=" << float_arr->max << "\n";
+        for (size_t i = 0; i < float_arr->len; ++i)
+          std::cout << i << '.' << ' ' << float_arr->vals[i] << '\n';
+      }
+
+      else {
+        // Fall back to a string array.
+          auto const arr = parse_str_arr(col);
+          std::cout << "str column len=" << arr.len
+                    << " width=" << arr.width << '\n';
+          for (size_t i = 0; i < arr.len; ++i) {
+            std::cout << i << '.' << ' ' << '[';
+            char const* base = arr.chars.data();
+            for (char const* p = base + i * arr.width;
+                 p < base + (i + 1) * arr.width;
+                 ++p)
+              if (*p == 0)
+                std::cout << "·";
+              else
+                std::cout << *p;
+            // std::cout << &arr.chars[i * arr.width];
+            std::cout << ']' << '\n';
+          }
       }
     }
 
