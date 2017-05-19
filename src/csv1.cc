@@ -316,33 +316,35 @@ parse<int64_t>(
 
 //------------------------------------------------------------------------------
 
-struct UInt64Arr
+template<class T>
+struct NumberArr
 {
-  using vals_type = std::vector<uint64_t>;
+  using vals_type = std::vector<T>;
 
   size_t len;
-  uint64_t min;
-  uint64_t max;
+  T min;
+  T max;
   vals_type vals;
 };
 
 
-inline optional<UInt64Arr>
-parse_uint64_arr(
+template<class T>
+inline optional<NumberArr<T>>
+parse_number_arr(
   Column const& col)
 {
   auto const len = col.size();
   if (len == 0)
-    return UInt64Arr{0, 0, 0, {}};
+    return NumberArr<T>{0, 0, 0, {}};
 
-  uint64_t min;
-  uint64_t max;
-  UInt64Arr::vals_type vals;
+  T min;
+  T max;
+  typename NumberArr<T>::vals_type vals;
   vals.reserve(len);
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
-    auto const val = parse<uint64_t>(field);
+    auto const val = parse<T>(field);
     if (val) {
       vals.push_back(*val);
       if (i == 0)
@@ -359,56 +361,7 @@ parse_uint64_arr(
   }
 
   assert(vals.size() == len);
-  return UInt64Arr{len, min, max, std::move(vals)};
-}
-
-
-//------------------------------------------------------------------------------
-
-struct Int64Arr
-{
-  using vals_type = std::vector<int64_t>;
-
-  size_t len;
-  int64_t min;
-  int64_t max;
-  vals_type vals;
-};
-
-
-inline optional<Int64Arr>
-parse_int64_arr(
-  Column const& col)
-{
-  auto const len = col.size();
-  if (len == 0)
-    return Int64Arr{0, 0, 0, {}};
-
-  int64_t min;
-  int64_t max;
-  Int64Arr::vals_type vals;
-  vals.reserve(len);
-
-  for (Column::size_type i = 0; i < len; ++i) {
-    auto const field = col[i];
-    auto const val = parse<int64_t>(field);
-    if (val) {
-      vals.push_back(*val);
-      if (i == 0)
-        min = max = *val;
-      else {
-        if (*val < min)
-          min = *val;
-        if (*val > max)
-          max = *val;
-      }
-    }
-    else
-      return {};
-  }
-
-  assert(vals.size() == len);
-  return Int64Arr{len, min, max, std::move(vals)};
+  return NumberArr<T>{len, min, max, std::move(vals)};
 }
 
 
@@ -438,7 +391,7 @@ main(
 
   for (auto const& col : cols) {
     // Try an int array.
-    auto const int_arr = parse_int64_arr(col);
+    auto const int_arr = parse_number_arr<int64_t>(col);
     if (int_arr) {
       std::cout << "int64 column len=" << int_arr->len
                 << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
