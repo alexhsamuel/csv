@@ -26,7 +26,7 @@ main()
   memset(nums, 0, w * n);
 
   for (size_t i = 0; i < n; ++i)
-    snprintf(&nums[i * w], w, "%.16lf", random() / 21474836470000.0);
+    snprintf(&nums[i * w], w, "%.16lf", random() / 2147483647.0);
 
   for (int i = 0; i < 8; ++i) {
     int64_t const s0 = get_time();
@@ -37,7 +37,7 @@ main()
       assert(*end == 0);
     }
     int64_t const e0 = get_time();
-    printf("strtod %lld %f\n", e0 - s0, sum);
+    printf("strtod  %lld %f\n", e0 - s0, sum);
   }
 
   for (int i = 0; i < 8; ++i) {
