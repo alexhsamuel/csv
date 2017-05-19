@@ -66,7 +66,16 @@ public:
   }
 
   inline void append(char c) { chars_.push_back(c); }
-  inline void finish() { offsets_.push_back(chars_.size()); }
+
+  inline void
+  finish()
+  {
+    auto const off = chars_.size();
+    auto const len = off - offsets_.back() & ~MISSING;
+    offsets_.push_back(off);
+    if (max_width_ < len)
+      max_width_ = len;
+  }
 
   inline void 
   missing() 
@@ -99,13 +108,7 @@ public:
   max_width()
     const
   {
-    size_type max = 0;
-    for (    
-      auto i0 = offsets_.cbegin(), i1 = i0 + 1;
-      i1 != offsets_.cend(); 
-      ++i0, ++i1)
-      max = std::max(max, (*i1 & ~MISSING) - (*i0 & ~MISSING));
-    return max;
+    return max_width_;
   }
 
 private:
@@ -114,6 +117,7 @@ private:
 
   std::vector<char> chars_;
   std::vector<size_type> offsets_;
+  size_type max_width_ = 0;
 
 };
 
