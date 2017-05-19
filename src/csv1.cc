@@ -34,7 +34,8 @@ operator<<(
 
 //------------------------------------------------------------------------------
 
-// FIXME: Compute max width in column?
+// FIXME: Instead of this complicated nonsense with special bits, just provide
+// an iterator interface.
 
 class Column
 {
@@ -337,24 +338,29 @@ parse_number_arr(
   if (len == 0)
     return NumberArr<T>{0, 0, 0, {}};
 
-  T min;
-  T max;
+  // Parse the first value.
+  auto const val = parse<T>(col[0]);
+  if (!val)
+    return {};
+
+  // Initialize min and max.
+  T min = *val;
+  T max = *val;
+
+  // Allocate space for results.
   typename NumberArr<T>::vals_type vals;
   vals.reserve(len);
+  vals.push_back(*val);
 
-  for (Column::size_type i = 0; i < len; ++i) {
+  for (Column::size_type i = 1; i < len; ++i) {
     auto const field = col[i];
     auto const val = parse<T>(field);
     if (val) {
       vals.push_back(*val);
-      if (i == 0)
-        min = max = *val;
-      else {
-        if (*val < min)
-          min = *val;
-        if (*val > max)
-          max = *val;
-      }
+      if (*val < min)
+        min = *val;
+      if (*val > max)
+        max = *val;
     }
     else
       return {};
