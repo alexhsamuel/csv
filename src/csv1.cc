@@ -292,13 +292,14 @@ parse_uint64_arr(
 
   uint64_t min;
   uint64_t max;
-  UInt64Arr::vals_type vals(len, 0);
+  UInt64Arr::vals_type vals;
+  vals.reserve(len);
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
     auto const val = parse_uint64(field);
     if (val) {
-      vals.at(i) = *val;
+      vals.push_back(*val);
       if (i == 0)
         min = max = *val;
       else {
@@ -312,6 +313,7 @@ parse_uint64_arr(
       return {};
   }
 
+  assert(vals.size() == len);
   return UInt64Arr{len, min, max, std::move(vals)};
 }
 
