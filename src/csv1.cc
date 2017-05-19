@@ -194,30 +194,6 @@ split_columns(
 
 //------------------------------------------------------------------------------
 
-struct Arr
-{
-  enum {
-    TYPE_INT,
-    TYPE_FLOAT,
-    TYPE_STR,
-  } 
-  type              = TYPE_INT;
-
-  int64_t int_min   = std::numeric_limits<int64_t>::min();
-  int64_t int_max   = std::numeric_limits<int64_t>::max();
-  double float_max  = std::numeric_limits<double>::max();
-  size_t str_len    = 0;
-
-  // FIXME: union?
-  int64_t* int_arr  = nullptr;
-  double* float_arr = nullptr;
-  char* str_arr     = nullptr;
-
-};
-
-
-//------------------------------------------------------------------------------
-
 struct StrArr
 {
   size_t len;
