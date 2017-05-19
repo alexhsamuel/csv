@@ -230,7 +230,6 @@ parse_str_arr(
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
     memcpy(base + i * width, field.ptr, field.len);
-    memset(base + i * width + field.len, '-', width - field.len);
   }
 
   return {len, width, std::move(chars)};
@@ -358,7 +357,10 @@ main(
         for (char const* p = base + i * arr.width;
              p < base + (i + 1) * arr.width;
              ++p)
-          std::cout << (char) *p;
+          if (*p == 0)
+            std::cout << "·";
+          else
+            std::cout << *p;
         // std::cout << &arr.chars[i * arr.width];
         std::cout << ']' << '\n';
       }
