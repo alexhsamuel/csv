@@ -52,10 +52,10 @@ public:
     offsets_.push_back(0); 
   }
 
-  Column(Column const&) = default;
-  Column(Column&&) = default;
-  Column& operator=(Column const&) = default;
-  Column& operator=(Column&&) = default;
+  Column(Column const&)             = default;
+  Column(Column&&)                  = default;
+  Column& operator=(Column const&)  = default;
+  Column& operator=(Column&&)       = default;
 
   inline size_type size() const { return offsets_.size() - 1; }
 
