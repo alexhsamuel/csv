@@ -51,6 +51,11 @@ public:
     offsets_.push_back(0); 
   }
 
+  Column(Column const&) = default;
+  Column(Column&&) = default;
+  Column& operator=(Column const&) = default;
+  Column& operator=(Column&&) = default;
+
   inline size_type size() const { return offsets_.size() - 1; }
 
   inline bool 
@@ -75,13 +80,18 @@ public:
     size_type const idx)
     const
   {
-    assert(idx < size());
-    auto const off = offsets_[idx];
+    auto const off = offsets_.at(idx);
     if (off & MISSING) 
       return {nullptr, 0};
     else {
-      auto const len = (offsets_[idx + 1] & ~MISSING) - off;
-      return {&chars_[off], len};
+      auto const off1 = (offsets_[idx + 1] & ~MISSING);
+      if (off1 == off)
+        // Empty buffer.
+        return {nullptr, 0};
+      else {
+        assert(off1 <= chars_.size());
+        return {&chars_.at(off), off1 - off};
+      }
     }
   }
 
@@ -91,8 +101,8 @@ public:
   {
     size_type max = 0;
     for (    
-      auto i0 = offsets_.begin(), i1 = i0 + 1;
-      i1 != offsets_.end(); 
+      auto i0 = offsets_.cbegin(), i1 = i0 + 1;
+      i1 != offsets_.cend(); 
       ++i0, ++i1)
       max = std::max(max, (*i1 & ~MISSING) - (*i0 & ~MISSING));
     return max;
@@ -118,10 +128,10 @@ split_columns(
   char const eol='\n',
   char const quote='"')
 {
-  std::vector<Column> cols;
-
   if (buffer.len == 0)
-    return cols;
+    return {};
+
+  std::vector<Column> cols;
 
   std::vector<Column>::size_type col_idx = 0;
   cols.emplace_back();
@@ -131,43 +141,40 @@ split_columns(
 
     if (c == eol) {
       // End the field.
-      cols[col_idx++].finish();
+      cols.at(col_idx++).finish();
 
       // Remaining colums are missing in this row.
-      for (; col_idx < cols.size(); ++col_idx) {
-        cols[col_idx].missing();
-      }
+      for (; col_idx < cols.size(); ++col_idx)
+        cols.at(col_idx).missing();
 
       // End the line.
       col_idx = 0;
     }
     else if (c == sep) {
       // End the field.
-      cols[col_idx].finish();
+      cols.at(col_idx).finish();
 
       ++col_idx;
       if (col_idx >= cols.size())
         // Create a new column, and back-fill it with missing.
         cols.emplace_back(cols[0].size() - 1);
     }
-    // Fast-forward through quoted strings.
-    else if (c == quote) {
-      // Skip over the opening quote.
-      i += 1;
-      for (; i < buffer.len && buffer.ptr[i] != quote; ++i)
-        cols[col_idx].append(buffer.ptr[i]);
+    else if (c == quote)
+      // Fast-forward through quoted strings: skip over the opening quote, and
+      // copy characters until the closing quote.
+      for (++i; i < buffer.len && buffer.ptr[i] != quote; ++i)
+        cols.at(col_idx).append(buffer.ptr[i]);
       // FIXME: else: unclosed quote.
-    }
     else
-      cols[col_idx].append(c);
+      cols.at(col_idx).append(c);
 
     // FIXME: Trailing field?
   }
 
   // Remaining colums are missing in this row.
-  if (col_idx > 0 || cols[0].started())
+  if (col_idx > 0 || cols.at(0).started())
     for (; col_idx < cols.size(); ++col_idx)
-      cols[col_idx].missing();
+      cols.at(col_idx).missing();
 
   return cols;
 }
@@ -197,11 +204,13 @@ struct Arr
 };
 
 
+//------------------------------------------------------------------------------
+
 struct StrArr
 {
   size_t len;
   size_t width;
-  char* arr;
+  std::vector<char> chars;
 };
 
 
@@ -210,17 +219,21 @@ parse_str_arr(
   Column const& col)
 {
   auto const len = col.size();
+  if (len == 0)
+    return StrArr{0, 0, {}};
+
   // Compute the column width, which is the longest string length.
   auto const width = col.max_width();
-  auto const arr = new char[len * width];
+  std::vector<char> chars(len * width, 0);
+  char* base = chars.data();
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
-    memcpy(arr + i * width, field.ptr, field.len);
-    memset(arr + i * width + field.len, 0, width - field.len);
+    memcpy(base + i * width, field.ptr, field.len);
+    memset(base + i * width + field.len, '-', width - field.len);
   }
 
-  return {len, width, arr};
+  return {len, width, std::move(chars)};
 }
 
 
@@ -257,10 +270,12 @@ parse_uint64(
 
 struct UInt64Arr
 {
+  using vals_type = std::vector<uint64_t>;
+
   size_t len;
   uint64_t min;
   uint64_t max;
-  uint64_t* arr;
+  vals_type vals;
 };
 
 
@@ -270,17 +285,17 @@ parse_uint64_arr(
 {
   auto const len = col.size();
   if (len == 0)
-    return UInt64Arr{0, 0, 0, nullptr};
+    return UInt64Arr{0, 0, 0, {}};
 
   uint64_t min;
   uint64_t max;
-  auto const arr = new uint64_t[len];
+  UInt64Arr::vals_type vals(len, 0);
 
   for (Column::size_type i = 0; i < len; ++i) {
     auto const field = col[i];
     auto const val = parse_uint64(field);
     if (val) {
-      arr[i] = *val;
+      vals.at(i) = *val;
       if (i == 0)
         min = max = *val;
       else {
@@ -290,13 +305,11 @@ parse_uint64_arr(
           max = *val;
       }
     }
-    else {
-      delete[] arr;
+    else
       return {};
-    }
   }
 
-  return UInt64Arr{len, min, max, arr};
+  return UInt64Arr{len, min, max, std::move(vals)};
 }
 
 
@@ -324,27 +337,29 @@ main(
 
   auto const cols = split_columns(buf);
 
-  for (auto const col : cols) {
-    std::cout << "COLUMN size=" << col.size();
-
+  for (auto const& col : cols) {
+    // Try an int array.
     auto const int_arr = parse_uint64_arr(col);
     if (int_arr) {
-      std::cout << " type=uint64 min=" << int_arr->min 
-                << " max=" << int_arr->max << "\n";
+      std::cout << "uint64 column len=" << int_arr->len
+                << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
       for (size_t i = 0; i < int_arr->len; ++i)
-        std::cout << i << '.' << ' ' << int_arr->arr[i] << '\n';
+        std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
     }
 
+    // Fall back to a string array.
     else {
       auto const arr = parse_str_arr(col);
-      std::cout << " type=str width=" << arr.width << '\n';
+      std::cout << "str column len=" << arr.len
+                << " width=" << arr.width << '\n';
       for (size_t i = 0; i < arr.len; ++i) {
         std::cout << i << '.' << ' ' << '[';
-        for (char const* p = arr.arr + i * arr.width;
-             p < arr.arr + (i + 1) * arr.width;
+        char const* base = arr.chars.data();
+        for (char const* p = base + i * arr.width;
+             p < base + (i + 1) * arr.width;
              ++p)
-          std::cout << *p;
-        // std::cout << arr.arr + i * arr.width;
+          std::cout << (char) *p;
+        // std::cout << &arr.chars[i * arr.width];
         std::cout << ']' << '\n';
       }
     }
