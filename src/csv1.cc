@@ -411,6 +411,7 @@ main(
   // std::cout << buf;
 
   auto const cols = split_columns(buf);
+  auto constexpr print_values = false;
 
   for (auto const& col : cols) {
     // Try an int array.
@@ -418,8 +419,9 @@ main(
     if (int_arr) {
       std::cout << "int64 column len=" << int_arr->len
                 << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
-      for (size_t i = 0; i < int_arr->len; ++i)
-        std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
+      if (print_values)
+        for (size_t i = 0; i < int_arr->len; ++i)
+          std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
     }
 
     else {
@@ -429,8 +431,9 @@ main(
         std::cout << "float64 column len=" << float_arr->len
                   << " min=" << float_arr->min
                   << " max=" << float_arr->max << "\n";
-        for (size_t i = 0; i < float_arr->len; ++i)
-          std::cout << i << '.' << ' ' << float_arr->vals[i] << '\n';
+        if (print_values)
+          for (size_t i = 0; i < float_arr->len; ++i)
+            std::cout << i << '.' << ' ' << float_arr->vals[i] << '\n';
       }
 
       else {
@@ -438,19 +441,20 @@ main(
           auto const arr = parse_str_arr(col);
           std::cout << "str column len=" << arr.len
                     << " width=" << arr.width << '\n';
-          for (size_t i = 0; i < arr.len; ++i) {
-            std::cout << i << '.' << ' ' << '[';
-            char const* base = arr.chars.data();
-            for (char const* p = base + i * arr.width;
-                 p < base + (i + 1) * arr.width;
-                 ++p)
-              if (*p == 0)
-                std::cout << "·";
-              else
-                std::cout << *p;
-            // std::cout << &arr.chars[i * arr.width];
-            std::cout << ']' << '\n';
-          }
+          if (print_values)
+            for (size_t i = 0; i < arr.len; ++i) {
+              std::cout << i << '.' << ' ' << '[';
+              char const* base = arr.chars.data();
+              for (char const* p = base + i * arr.width;
+                   p < base + (i + 1) * arr.width;
+                   ++p)
+                if (*p == 0)
+                  std::cout << "·";
+                else
+                  std::cout << *p;
+              // std::cout << &arr.chars[i * arr.width];
+              std::cout << ']' << '\n';
+            }
       }
     }
 
