@@ -41,6 +41,9 @@ operator<<(
 // FIXME: Instead of this complicated nonsense with special bits, just provide
 // an iterator interface.
 
+// FIXME: Instead of copying values, store offsets into shmem.  Mark whether
+// unquoting/unescaping is required.
+
 // FIXME: Track whether there are empty fields (or min width).
 
 // FIXME: Track whether there are non-int chars, non-float chars.
@@ -401,6 +404,119 @@ parse_number_arr(
 
 //------------------------------------------------------------------------------
 
+// FIXME: Use a respectable variant.
+
+class Array
+{
+public:
+
+  using variant_type = enum {
+    VARIANT_INT,
+    VARIANT_FLOAT,
+    VARIANT_STRING,
+  };
+
+  Array(NumberArr<int64_t>&& arr) : variant_{VARIANT_INT}, int_arr_{std::move(arr)} {}
+  Array(NumberArr<float64_t>&& arr) : variant_{VARIANT_FLOAT}, float_arr_{std::move(arr)} {}
+  Array(StrArr&& arr) : variant_{VARIANT_STRING}, str_arr_{std::move(arr)} {}
+
+  variant_type variant() const { return variant_; }
+
+  NumberArr<int64_t> const& int_arr() const { return *int_arr_; }
+  NumberArr<float64_t> const& float_arr() const { return *float_arr_; }
+  StrArr const& str_arr() const { return *str_arr_; }
+
+private:
+
+  variant_type variant_;
+
+  optional<NumberArr<int64_t>> const int_arr_;
+  optional<NumberArr<float64_t>> const float_arr_;
+  optional<StrArr> const str_arr_;
+
+};
+
+
+void
+print(
+  std::ostream& os,
+  Array const& arr,
+  bool const print_values=false)
+{
+  if (arr.variant() == Array::VARIANT_INT) {
+    auto const& int_arr = arr.int_arr();
+    os << "int64 column '" << int_arr.name 
+       << "' len=" << int_arr.len
+       << " min=" << int_arr.min << " max=" << int_arr.max << "\n";
+    if (print_values)
+      for (size_t i = 0; i < int_arr.len; ++i)
+        os << i << '.' << ' ' << int_arr.vals[i] << '\n';
+  }
+
+  else if (arr.variant() == Array::VARIANT_FLOAT) {
+    auto const& float_arr = arr.float_arr();
+    os << "float64 column '" << float_arr.name 
+       << "' len=" << float_arr.len
+       << " min=" << float_arr.min
+       << " max=" << float_arr.max << "\n";
+    if (print_values)
+      for (size_t i = 0; i < float_arr.len; ++i)
+        os << i << '.' << ' ' << float_arr.vals[i] << '\n';
+  }
+
+  else if (arr.variant() == Array::VARIANT_STRING) {
+    auto const& str_arr = arr.str_arr();
+    os << "str column len=" << str_arr.len
+       << " width=" << str_arr.width << '\n';
+    if (print_values)
+      for (size_t i = 0; i < str_arr.len; ++i) {
+        os << i << '.' << ' ' << '[';
+        char const* base = str_arr.chars.data();
+        for (char const* p = base + i * str_arr.width;
+             p < base + (i + 1) * str_arr.width;
+             ++p)
+          if (*p == 0)
+            os << "·";
+          else
+            os << *p;
+        os << ']' << '\n';
+      }
+  }
+}
+
+
+inline std::ostream&
+operator<<(
+  std::ostream& os,
+  Array const& arr)
+{
+  print(os, arr, false);
+  return os;
+}
+
+
+Array
+parse_array(
+  Column const& col,
+  bool header=true)
+{
+  {
+    auto arr = parse_number_arr<int64_t>(col);
+    if (arr)
+      return {std::move(*arr)};
+  }
+  {
+    auto arr = parse_number_arr<float64_t>(col);
+    if (arr)
+      return {std::move(*arr)};
+  }
+  
+  return {parse_str_arr(col)};
+}
+
+
+//------------------------------------------------------------------------------
+
 int
 main(
   int const argc,
@@ -422,56 +538,10 @@ main(
   // std::cout << buf;
 
   auto const cols = split_columns(buf);
-  auto constexpr print_values = false;
 
   for (auto const& col : cols) {
-    // Try an int array.
-    auto const int_arr = parse_number_arr<int64_t>(col);
-    if (int_arr) {
-      std::cout << "int64 column '" << int_arr->name 
-                << "' len=" << int_arr->len
-                << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
-      if (print_values)
-        for (size_t i = 0; i < int_arr->len; ++i)
-          std::cout << i << '.' << ' ' << int_arr->vals[i] << '\n';
-    }
-
-    else {
-      // Try float array.
-      auto const float_arr = parse_number_arr<float64_t>(col);
-      if (float_arr) {
-        std::cout << "float64 column '" << float_arr->name 
-                  << "' len=" << float_arr->len
-                  << " min=" << float_arr->min
-                  << " max=" << float_arr->max << "\n";
-        if (print_values)
-          for (size_t i = 0; i < float_arr->len; ++i)
-            std::cout << i << '.' << ' ' << float_arr->vals[i] << '\n';
-      }
-
-      else {
-        // Fall back to a string array.
-          auto const arr = parse_str_arr(col);
-          std::cout << "str column len=" << arr.len
-                    << " width=" << arr.width << '\n';
-          if (print_values)
-            for (size_t i = 0; i < arr.len; ++i) {
-              std::cout << i << '.' << ' ' << '[';
-              char const* base = arr.chars.data();
-              for (char const* p = base + i * arr.width;
-                   p < base + (i + 1) * arr.width;
-                   ++p)
-                if (*p == 0)
-                  std::cout << "·";
-                else
-                  std::cout << *p;
-              // std::cout << &arr.chars[i * arr.width];
-              std::cout << ']' << '\n';
-            }
-      }
-    }
-
-    std::cout << '\n';
+    auto arr = parse_array(col, true);
+    std::cout << arr << "\n";
   }
 
   // FIXME: munmap.
