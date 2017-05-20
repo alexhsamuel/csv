@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <limits>
