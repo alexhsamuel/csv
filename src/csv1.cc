@@ -335,7 +335,9 @@ struct NumberArr
 };
 
 
-template<class T>
+template<class T> using Parse = optional<T>(*)(Buffer);
+
+template<class T, Parse<T> PARSE=parse<T>>
 inline optional<NumberArr<T>>
 parse_number_arr(
   Column const& col)
@@ -345,7 +347,7 @@ parse_number_arr(
     return NumberArr<T>{0, 0, 0, {}};
 
   // Parse the first value.
-  auto const val = parse<T>(col[0]);
+  auto const val = PARSE(col[0]);
   if (!val)
     return {};
 
@@ -360,7 +362,7 @@ parse_number_arr(
 
   for (Column::size_type i = 1; i < len; ++i) {
     auto const field = col[i];
-    auto const val = parse<T>(field);
+    auto const val = PARSE(field);
     if (val) {
       vals.push_back(*val);
       if (*val < min)
