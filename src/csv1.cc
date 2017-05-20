@@ -92,25 +92,69 @@ public:
     finish(); 
   }
 
-  inline Buffer 
-  operator[](
-    size_type const idx)
-    const
+  class Iterator
   {
-    auto const off = offsets_.at(idx);
-    if (off & MISSING) 
-      return {nullptr, 0};
-    else {
-      auto const off1 = (offsets_[idx + 1] & ~MISSING);
-      if (off1 == off)
-        // Empty buffer.
+  public:
+
+    Iterator(
+      Column const& col, 
+      Column::size_type idx=0) 
+    : col_(col), 
+      idx_(idx) 
+    {
+    }
+
+    void operator++() { ++idx_; }
+
+    Buffer 
+    operator*()
+    {
+      auto const off = col_.offsets_.at(idx_);
+      if (off & MISSING) 
         return {nullptr, 0};
       else {
-        assert(off1 <= chars_.size());
-        return {&chars_.at(off), off1 - off};
+        auto const off1 = (col_.offsets_.at(idx_ + 1) & ~MISSING);
+        if (off1 == off)
+          // Empty buffer.
+          return {nullptr, 0};
+        else {
+          assert(off1 <= col_.chars_.size());
+          return {&col_.chars_.at(off), off1 - off};
+        }
       }
     }
-  }
+
+    bool operator!=(Iterator const& other) { return idx_ != other.idx_; }
+
+  private:
+
+    Column const& col_;
+    Column::size_type idx_;
+
+  };
+
+  Iterator begin() const { return Iterator(*this, 0); }
+  Iterator end() const { return Iterator(*this, size()); }
+
+  // inline Buffer 
+  // operator[](
+  //   size_type const idx)
+  //   const
+  // {
+  //   auto const off = offsets_.at(idx);
+  //   if (off & MISSING) 
+  //     return {nullptr, 0};
+  //   else {
+  //     auto const off1 = (offsets_[idx + 1] & ~MISSING);
+  //     if (off1 == off)
+  //       // Empty buffer.
+  //       return {nullptr, 0};
+  //     else {
+  //       assert(off1 <= chars_.size());
+  //       return {&chars_.at(off), off1 - off};
+  //     }
+  //   }
+  // }
 
   inline size_type
   max_width()
@@ -215,10 +259,9 @@ parse_str_arr(
   std::vector<char> chars(len * width, 0);
   char* base = chars.data();
 
-  for (Column::size_type i = 0; i < len; ++i) {
-    auto const field = col[i];
-    memcpy(base + i * width, field.ptr, field.len);
-  }
+  size_t i = 0;
+  for (auto const field : col)
+    memcpy(base + i++ * width, field.ptr, field.len);
 
   return {len, width, std::move(chars)};
 }
@@ -358,8 +401,7 @@ parse_number_arr(
   vals.reserve(len);
   vals.push_back(*val);
 
-  for (Column::size_type i = 1; i < len; ++i) {
-    auto const field = col[i];
+  for (auto const field : col) {
     auto const val = parse<T>(field);
     if (val) {
       vals.push_back(*val);
