@@ -145,12 +145,12 @@ Column::size_type const Column::MISSING;
 
 std::vector<Column>
 split_columns(
-  Buffer const& buffer,
+  FILE* fp,
   char const sep=',',
   char const eol='\n',
   char const quote='"')
 {
-  if (buffer.len == 0)
+  if (feof(fp))
     return {};
 
   std::vector<Column> cols;
@@ -158,8 +158,10 @@ split_columns(
   std::vector<Column>::size_type col_idx = 0;
   cols.emplace_back();
 
-  for (size_t i = 0; i < buffer.len; ++i) {
-    char const c = buffer.ptr[i];
+  while (true) {
+    char c = getc(fp);
+    if (c == EOF)
+      break;
 
     if (c == eol) {
       // End the field.
@@ -184,8 +186,8 @@ split_columns(
     else if (c == quote)
       // Fast-forward through quoted strings: skip over the opening quote, and
       // copy characters until the closing quote.
-      for (++i; i < buffer.len && buffer.ptr[i] != quote; ++i)
-        cols.at(col_idx).append(buffer.ptr[i]);
+      for (c = getc(fp); c != quote && c != EOF; c = getc(fp))
+        cols.at(col_idx).append(c);
       // FIXME: else: unclosed quote.
     else
       cols.at(col_idx).append(c);
@@ -396,22 +398,23 @@ main(
   int const argc,
   char const* const* const argv)
 {
-  int const fd = open(argv[1], O_RDONLY);
-  assert(fd >= 0);
+  // int const fd = open(argv[1], O_RDONLY);
+  // assert(fd >= 0);
 
-  struct stat info;
-  int res = fstat(fd, &info);
-  assert(res == 0);
-  std::cout << "st_size = " << info.st_size << std::endl;
+  // struct stat info;
+  // int res = fstat(fd, &info);
+  // assert(res == 0);
+  // std::cout << "st_size = " << info.st_size << std::endl;
   
-  void* ptr = mmap(nullptr, info.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  assert(ptr != MAP_FAILED);
+  // void* ptr = mmap(nullptr, info.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  // assert(ptr != MAP_FAILED);
 
-  Buffer buf{static_cast<char const*>(ptr), (size_t) info.st_size};
+  // Buffer buf{static_cast<char const*>(ptr), (size_t) info.st_size};
 
-  // std::cout << buf;
+  FILE* const fp = fopen(argv[1], "r");
+  assert(fp != nullptr);
 
-  auto const cols = split_columns(buf);
+  auto const cols = split_columns(fp);
   auto constexpr print_values = false;
 
   for (auto const& col : cols) {
