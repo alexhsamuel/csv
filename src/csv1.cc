@@ -83,11 +83,14 @@ public:
     offsets_.push_back(off);
     if (max_width_ < len)
       max_width_ = len;
+    if (len == 0)
+      has_empty_ = true;
   }
 
   inline void 
   missing() 
   { 
+    has_missing_ = true;
     offsets_.back() |= MISSING; 
     finish(); 
   }
@@ -112,6 +115,9 @@ public:
     }
   }
 
+  inline bool has_missing() const { return has_missing_; }
+  inline bool has_empty() const { return has_empty_; }
+
   inline size_type
   max_width()
     const
@@ -125,6 +131,9 @@ private:
 
   std::vector<char> chars_;
   std::vector<size_type> offsets_;
+
+  bool has_missing_ = false;
+  bool has_empty_ = false;
   size_type max_width_ = 0;
 
 };
