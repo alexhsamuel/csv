@@ -342,6 +342,7 @@ struct NumberArr
   T min;
   T max;
   vals_type vals;
+  std::string name;
 };
 
 
@@ -350,14 +351,23 @@ template<class T> using Parse = optional<T>(*)(Buffer);
 template<class T, Parse<T> PARSE=parse<T>>
 inline optional<NumberArr<T>>
 parse_number_arr(
-  Column const& col)
+  Column const& col,
+  bool const header=true)
 {
   auto const len = col.size();
   if (len == 0)
-    return NumberArr<T>{0, 0, 0, {}};
+    // FIXME: What if header is true?
+    return NumberArr<T>{0, 0, 0, {}, {}};
+
+  std::string name;
+  Column::size_type i = 0;
+  if (header) {
+    auto const& n = col[i++];
+    name = std::string{n.ptr, n.len};
+  }
 
   // Parse the first value.
-  auto const val = PARSE(col[0]);
+  auto const val = PARSE(col[i++]);
   if (!val)
     return {};
 
@@ -370,7 +380,7 @@ parse_number_arr(
   vals.reserve(len);
   vals.push_back(*val);
 
-  for (Column::size_type i = 1; i < len; ++i) {
+  for (; i < len; ++i) {
     auto const field = col[i];
     auto const val = PARSE(field);
     if (val) {
@@ -384,8 +394,8 @@ parse_number_arr(
       return {};
   }
 
-  assert(vals.size() == len);
-  return NumberArr<T>{len, min, max, std::move(vals)};
+  assert(vals.size() == len - (header ? 1 : 0));
+  return NumberArr<T>{len, min, max, std::move(vals), name};
 }
 
 
@@ -418,7 +428,8 @@ main(
     // Try an int array.
     auto const int_arr = parse_number_arr<int64_t>(col);
     if (int_arr) {
-      std::cout << "int64 column len=" << int_arr->len
+      std::cout << "int64 column '" << int_arr->name 
+                << "' len=" << int_arr->len
                 << " min=" << int_arr->min << " max=" << int_arr->max << "\n";
       if (print_values)
         for (size_t i = 0; i < int_arr->len; ++i)
@@ -429,7 +440,8 @@ main(
       // Try float array.
       auto const float_arr = parse_number_arr<float64_t>(col);
       if (float_arr) {
-        std::cout << "float64 column len=" << float_arr->len
+        std::cout << "float64 column '" << float_arr->name 
+                  << "' len=" << float_arr->len
                   << " min=" << float_arr->min
                   << " max=" << float_arr->max << "\n";
         if (print_values)
