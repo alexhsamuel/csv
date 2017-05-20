@@ -44,8 +44,6 @@ operator<<(
 // FIXME: Instead of copying values, store offsets into shmem.  Mark whether
 // unquoting/unescaping is required.
 
-// FIXME: Track whether there are empty fields (or min width).
-
 // FIXME: Track whether there are non-int chars, non-float chars.
 
 class Column
@@ -534,8 +532,6 @@ main(
   assert(ptr != MAP_FAILED);
 
   Buffer buf{static_cast<char const*>(ptr), (size_t) info.st_size};
-
-  // std::cout << buf;
 
   auto const cols = split_columns(buf);
 
