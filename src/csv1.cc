@@ -42,7 +42,7 @@ operator<<(
 
 // FIXME: Track whether there are empty fields (or min width).
 
-// FIXME: Track whether there are non-nit chars, non-float chars.
+// FIXME: Track whether there are non-int chars, non-float chars.
 
 class Column
 {
