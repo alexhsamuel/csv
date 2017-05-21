@@ -69,12 +69,12 @@ public:
 
   Column(Column&&) = default;
 
-  inline size_t size() const { return fields_.size(); }
-  inline bool has_missing() const { return has_missing_; }
-  inline bool has_empty() const { return has_empty_; }
-  inline size_t max_width() const { return max_width_; }
+  size_t    size()          const { return fields_.size(); }
+  bool      has_missing()   const { return has_missing_; }
+  bool      has_empty()     const { return has_empty_; }
+  size_t    max_width()     const { return max_width_; }
 
-  inline void append(
+  void append(
     size_t const start,
     size_t const end,
     bool const escaped)
@@ -91,7 +91,7 @@ public:
       max_width_ = len;
   }
 
-  inline void 
+  void 
   append_missing()
   {
     fields_.emplace_back();
