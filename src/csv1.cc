@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include "ThreadPool.hh"
+
 using std::experimental::optional;
 
 // FIXME: UTF-8 (and other encodings?)
@@ -535,10 +537,13 @@ main(
 
   auto const cols = split_columns(buf);
 
-  for (auto const& col : cols) {
-    auto arr = parse_array(col, true);
-    std::cout << arr << "\n";
-  }
+  ThreadPool pool(4);
+  std::vector<std::future<Array>> results;
+  for (auto const& col : cols)
+    results.push_back(pool.enqueue(parse_array, col, true));
+
+  for (auto&& result : results)
+    std::cout << result.get() << "\n";
 
   // FIXME: munmap.
   // FIXME: close.
