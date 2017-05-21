@@ -48,13 +48,25 @@ private:
   struct Field
   {
     Field() : missing{true} {};
-    Field(size_t s, size_t l, bool e) : start{s}, len{l}, escaped{e}, missing{false} {}
 
-    size_t start;
-    size_t len;
-    bool escaped;
-    bool missing;
+    Field(
+      size_t start_,
+      size_t len_,
+      bool escaped_) 
+    : start{start_}
+    , len{len_}
+    , escaped{escaped_}
+    , missing{false} 
+    {
+    }
+
+    unsigned long   start   : 46;  // 64 TB limit on total size
+    unsigned long   len     : 16;  // 64 KB limit on field size
+    bool            escaped :  1;
+    bool            missing :  1;
   };
+
+  static_assert(sizeof(Field) == 8, "wrong sizeof(Field)");
 
 public:
 
