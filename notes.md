@@ -25,4 +25,5 @@ user	0m5.287s
 sys	0m0.382s
 ```
 
-With threads, 3.9 s.
+- With threads, 3.9 s.
+- With threads and simpler columns, 3.5 s.
