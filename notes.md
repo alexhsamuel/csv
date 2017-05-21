@@ -26,4 +26,6 @@ sys	0m0.382s
 ```
 
 - With threads, 3.9 s.
-- With threads and simpler columns, 3.5 s.
+- Add simpler columns, 3.5 s.
+- Add bitfields: 3.0s.
+
