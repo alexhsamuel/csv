@@ -161,7 +161,7 @@ private:
 
 std::vector<Column>
 split_columns(
-  Buffer const& buffer,
+  Buffer const buffer,
   char const sep=',',
   char const eol='\n',
   char const quote='"')
@@ -556,11 +556,18 @@ main(
 
   struct stat info;
   int res = fstat(fd, &info);
+  if (res != 0) {
+    perror("fstat");
+    exit(EXIT_FAILURE);
+  }
   assert(res == 0);
   std::cout << "st_size = " << info.st_size << std::endl;
   
   void* ptr = mmap(nullptr, info.st_size, PROT_READ, MAP_SHARED, fd, 0);
-  assert(ptr != MAP_FAILED);
+  if (ptr == MAP_FAILED) {
+    perror("mmap");
+    exit(EXIT_FAILURE);
+  }
 
   Buffer buf{static_cast<char const*>(ptr), (size_t) info.st_size};
 
