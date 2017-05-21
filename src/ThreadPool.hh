@@ -1,4 +1,6 @@
 /*
+From https://github.com/progschj/ThreadPool.
+
 Copyright (c) 2012 Jakob Progsch, Václav Zeman
 
 This software is provided 'as-is', without any express or implied
