@@ -18,8 +18,10 @@ CXXFLAGS    	= $(CFLAGS) -std=c++14
 
 #-------------------------------------------------------------------------------
 
+strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
+
 src/csv1:   	    	
 
-strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o
+strtod/test_intstrtod:	    strtod/intstrtod.o
 
 
