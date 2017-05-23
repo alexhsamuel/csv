@@ -29,3 +29,33 @@ sys	0m0.382s
 - Add simpler columns, 3.5 s.
 - Add bitfields: 3.0s.
 
+---
+
+```
+$ time src/csv1 data/gencsv-10m.csv 
+st_size = 2019873529
+done with split
+int64 column 'index' len=10000001 min=0 max=9999999
+int64 column 'id' len=10000001 min=4 max=50006625
+str column len=10000001 width=8
+float64 column 'normal0' len=10000001 min=-5.09962 max=5.22694
+float64 column 'normal1' len=10000001 min=-5.50601 max=5.22783
+float64 column 'normal2' len=10000001 min=-5.02299 max=5.26825
+float64 column 'normal3' len=10000001 min=-5.24478 max=5.28144
+float64 column 'normal4' len=10000001 min=-5.71266 max=5.24464
+float64 column 'normal5' len=10000001 min=-5.11398 max=5.47894
+float64 column 'normal6' len=10000001 min=-5.15393 max=5.14644
+float64 column 'normal7' len=10000001 min=-4.98027 max=5.19251
+float64 column 'uniform' len=10000001 min=1.52576e-07 max=1
+
+real	0m31.571s
+user	1m25.400s
+sys	0m3.729s
+```
+
+Pandas:
+
+```
+In [2]: %timeit pandas.read_csv("data/gencsv-10m.csv")
+42.9 s ± 578 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+```
