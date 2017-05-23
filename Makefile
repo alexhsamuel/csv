@@ -20,3 +20,5 @@ CXXFLAGS    	= $(CFLAGS) -std=c++14
 
 src/csv1:   	    	
 
+strtod/benchmark:   	    strtod/pandas.o
+
