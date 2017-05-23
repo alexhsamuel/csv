@@ -1,3 +1,4 @@
+#include <getopt.h>
 #include <iostream>
 #include <vector>
 
@@ -24,7 +25,7 @@ rand(
   double const max)
 {
   auto constexpr den = 1.0 / RAND_MAX;
-  return random() * den / max;
+  return random() * den * max;
 }
 
 
@@ -57,8 +58,8 @@ _xstrtod(
   char const* s)
 {
   char* end;
-  auto const val = xstrtod(s, &end, '.', 0, 0, 0);
-  assert(*end == 0);
+  auto const val = xstrtod(s, &end, '.', 'e', 0, 0);
+  assert(*end == 0); 
   return val;
 }
 
@@ -68,7 +69,7 @@ _precise_xstrtod(
   char const* s)
 {
   char* end;
-  auto const val = precise_xstrtod(s, &end, '.', 0, 0, 0);
+  auto const val = precise_xstrtod(s, &end, '.', 'e', 0, 0);
   assert(*end == 0);
   return val;
 }
@@ -93,13 +94,46 @@ time_fn(
 int
 main(
   int const argc,
-  char const* const* const argv)
+  char* const* const argv)
 {
   srandomdev();
 
-  size_t constexpr num = 1024 * 1024;
-  size_t constexpr width = 32;
-  auto const str_arr = rand_arr(1e+0, num, width);
+  struct option const long_options[] = {
+    {"number", required_argument, nullptr, 'n'},
+    {"width", required_argument, nullptr, 'w'},
+    {"scale", required_argument, nullptr, 's'},
+    {nullptr, 0, nullptr, 0}
+  };
+
+  size_t num = 1024 * 1024;
+  size_t width = 32;
+  double scale = 1;
+
+  char ch;
+  while ((ch = getopt_long(
+            argc, argv, "n:w:s:", long_options, nullptr)) != -1)
+    switch (ch) {
+    case 'n':
+      num = (size_t) atol(optarg);
+      break;
+    case 'w':
+      width = (size_t) atol(optarg);
+      break;
+    case 's':
+      scale = _strtod(optarg);
+      break;
+    default:
+      std::cerr << "invalid usage\n";
+      exit(EXIT_FAILURE);
+    }
+
+  auto const str_arr = rand_arr(scale, num, width);
+
+  if (false) {
+    for (size_t i = 0; i < num; ++i)
+      std::cout << &str_arr[i * width] << "\n";
+    std::cout << std::flush;
+  }
 
   Timer timer{1};
   std::cout 
