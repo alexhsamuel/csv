@@ -13,6 +13,8 @@ extern "C" {
     const char *str, char **endptr, char decimal, char sci, char tsep, 
     int skip_trailing);
 
+  double str2dbl(char const*);
+
 }
 
 //------------------------------------------------------------------------------
@@ -120,6 +122,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_fn<_precise_xstrtod>(str_arr, width, num)
     << " time: " << timer(time_fn<_precise_xstrtod>, str_arr, width, num) / num 
+    << std::endl
+
+    << "str2dbl        "
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<str2dbl>(str_arr, width, num)
+    << " time: " << timer(time_fn<str2dbl>, str_arr, width, num) / num 
     << std::endl
     ;
 
