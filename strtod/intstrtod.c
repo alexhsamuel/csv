@@ -29,8 +29,11 @@ intstrtod(
       val = val * 10 + c - '0';
       ++digits;
     }
-    else if (c == '.')
+    else if (c == '.') {
+      if (digits >= 0)
+        break;
       digits = 0;
+    }
     // FIXME: Scientific notation.
     else
       break;
@@ -39,10 +42,7 @@ intstrtod(
   if (endptr)
     *endptr = p;
 
-  double result = negative ? -val : val;
-  if (digits > 0) 
-    result *= pow10(-digits);
-  return result;
+  return (negative ? -val : val) * pow10(-digits);
 }
 
 

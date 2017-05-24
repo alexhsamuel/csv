@@ -148,7 +148,7 @@ main(
     std::cout << std::flush;
   }
 
-  Timer timer{1};
+  Timer timer{2, 0.25};
   std::cout 
     << "strtod         "
     << " val=" 
