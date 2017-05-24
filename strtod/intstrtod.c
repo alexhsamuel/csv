@@ -1,6 +1,6 @@
 #include <assert.h>
+#include <ctype.h>
 #include <limits.h>
-#include <math.h>
 #include <stdint.h>
 
 inline double pow10(int);
@@ -25,7 +25,7 @@ intstrtod(
 
   for (; *p != '\0'; ++p) {
     char const c = *p;
-    if ('0' <= c && c <= '9') {
+    if (isdigit(c)) {
       val = val * 10 + c - '0';
       ++digits;
     }
@@ -65,7 +65,7 @@ intstrtod_unrolled(
   long val = 0;
 
 #define next_digit                                                          \
-  if ('0' <= *p && *p <= '9') {                                             \
+  if (isdigit(*p)) {                                                        \
     val = val * 10 + *p - '0';                                              \
     ++digits;                                                               \
   }                                                                         \
@@ -97,7 +97,7 @@ intstrtod_unrolled(
 #undef next_digit
 
   // Remaining digits don't matter.
-  while ('0' <= *p && *p <= '9')
+  while (isdigit(*p))
     ++p;
   
 end:
