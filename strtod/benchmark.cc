@@ -41,7 +41,7 @@ rand_arr(
 {
   char* result = new char[num * width];
   for (size_t i = 0; i < num; ++i)
-    snprintf(result + i * width, width, "%.15f", rand(max));
+    snprintf(result + i * width, width, "%.20f", rand(max));
   return result;
 }
 

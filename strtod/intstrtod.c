@@ -64,186 +64,38 @@ intstrtod_unrolled(
   int digits = INT_MIN;
   long val = 0;
 
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
+#define next_digit                                                          \
+  if ('0' <= *p && *p <= '9') {                                             \
+    val = val * 10 + *p - '0';                                              \
+    ++digits;                                                               \
+  }                                                                         \
+  else if (*p == '.' && digits < 0)                                         \
+    digits = 0;                                                             \
+  else                                                                      \
+    goto end;                                                               \
+  ++p
     
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
+  next_digit;
     
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
-  if ('0' <= *p && *p <= '9') {
-    val = val * 10 + *p - '0';
-    ++digits;
-  }
-  else if (*p == '.' && digits < 0)
-    digits = 0;
-  else
-    goto end;
-  ++p;
-    
+#undef next_digit
+
   // Remaining digits don't matter.
   while ('0' <= *p && *p <= '9')
     ++p;
