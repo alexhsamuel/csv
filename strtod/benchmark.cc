@@ -16,9 +16,10 @@ extern "C" {
 
   double str2dbl(char const*);
 
-  double intstrtod(char const*, char const**);
-
-  double intstrtod_unrolled(char const*, char const**);
+  // FIXME: Real signature is char const**.
+  double intstrtod(char const*, char**);
+  double intstrtod_unrolled1(char const*, char**);
+  double intstrtod_unrolled2(char const*, char**);
 
 }
 
@@ -41,17 +42,18 @@ rand_arr(
 {
   char* result = new char[num * width];
   for (size_t i = 0; i < num; ++i)
-    snprintf(result + i * width, width, "%.20f", rand(max));
+    snprintf(result + i * width, width, "%.18f", rand(max));
   return result;
 }
 
 
+template<double (*F)(char const*, char**)>
 inline double
-_strtod(
+wrap_strtod(
   char const* s)
 {
   char* end;
-  auto const val = strtod(s, &end);
+  auto const val = F(s, &end);
   assert(*end == 0);
   return val;
 }
@@ -74,28 +76,6 @@ _precise_xstrtod(
 {
   char* end;
   auto const val = precise_xstrtod(s, &end, '.', 'e', 0, 0);
-  assert(*end == 0);
-  return val;
-}
-
-
-inline double
-_intstrtod(
-  char const* s)
-{
-  char const* end;
-  auto const val = intstrtod(s, &end);
-  assert(*end == 0);
-  return val;
-}
-
-
-inline double
-_intstrtod_unrolled(
-  char const* s)
-{
-  char const* end;
-  auto const val = intstrtod_unrolled(s, &end);
   assert(*end == 0);
   return val;
 }
@@ -146,7 +126,7 @@ main(
       width = (size_t) atol(optarg);
       break;
     case 's':
-      scale = _strtod(optarg);
+      scale = wrap_strtod<strtod>(optarg);
       break;
     default:
       std::cerr << "invalid usage\n";
@@ -166,22 +146,29 @@ main(
     << "intstrtod      "
     << " val=" 
     << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<_intstrtod>(str_arr, width, num)
-    << " time: " << timer(time_fn<_intstrtod>, str_arr, width, num) / num 
+    << time_fn<wrap_strtod<intstrtod>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<intstrtod>>, str_arr, width, num) / num 
     << std::endl
 
-    << "intstrtod_unr  "
+    << "intstrtod_unr1 "
     << " val=" 
     << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<_intstrtod_unrolled>(str_arr, width, num)
-    << " time: " << timer(time_fn<_intstrtod_unrolled>, str_arr, width, num) / num 
+    << time_fn<wrap_strtod<intstrtod_unrolled1>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<intstrtod_unrolled1>>, str_arr, width, num) / num 
+    << std::endl
+
+    << "intstrtod_unr2 "
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<wrap_strtod<intstrtod_unrolled2>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<intstrtod_unrolled2>>, str_arr, width, num) / num 
     << std::endl
 
     << "strtod         "
     << " val=" 
     << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<_strtod>(str_arr, width, num)
-    << " time: " << timer(time_fn<_strtod>, str_arr, width, num) / num 
+    << time_fn<wrap_strtod<strtod>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<strtod>>, str_arr, width, num) / num 
     << std::endl
 
     << "xstrtod        "

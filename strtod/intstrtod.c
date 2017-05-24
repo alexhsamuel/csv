@@ -110,22 +110,20 @@ intstrtod(
   int digits = INT_MIN;
   long val = 0;
 
-  for (; *p != '\0'; ++p) {
-    char const c = *p;
-    if (isdigit(c)) {
-      val = val * 10 + c - '0';
+  // FIXME: Need to cut this off at 18 digits, before val overflows.
+  while (1) {
+    if (isdigit(*p)) {
+      val = val * 10 + *p - '0';
       ++digits;
     }
-    else if (c == '.') {
-      if (digits >= 0)
-        break;
+    else if (*p == '.' && digits < 0)
       digits = 0;
-    }
     // FIXME: Scientific notation.
     else
       break;
+    ++p;
   }  
-    
+
   if (endptr)
     *endptr = p;
 
@@ -134,7 +132,7 @@ intstrtod(
 
 
 double
-intstrtod_unrolled(
+intstrtod_unrolled1(
   char const* ptr,
   char const** endptr)
 {
@@ -191,6 +189,70 @@ end:
   if (endptr)
     *endptr = p;
 
+  return (negative ? -val : val) * pow10(-digits);
+}
+
+
+double
+intstrtod_unrolled2(
+  char const* ptr,
+  char const** endptr)
+{
+  char const* p = ptr;
+
+  int negative = 0;
+  if (*p == '-') {
+    negative = 1;
+    ++p;
+  }
+  else if (*p == '+')
+    ++p;
+
+  int digits = INT_MIN;
+  long val = 0;
+
+#define next_digit(pos)                                                     \
+  if (isdigit(p[pos])) {                                                    \
+    val = val * 10 + p[pos] - '0';                                          \
+    ++digits;                                                               \
+  }                                                                         \
+  else if (p[pos] == '.' && digits < 0)                                     \
+    digits = 0;                                                             \
+  else {                                                                    \
+    *endptr = p + pos;                                                      \
+    goto end;                                                               \
+  }
+    
+  next_digit( 0);
+  next_digit( 1);
+  next_digit( 2);
+  next_digit( 3);
+  next_digit( 4);
+  next_digit( 5);
+  next_digit( 6);
+  next_digit( 7);
+  next_digit( 8);
+  next_digit( 9);
+  next_digit(10);
+  next_digit(11);
+  next_digit(12);
+  next_digit(13);
+  next_digit(14);
+  next_digit(15);
+  next_digit(16);
+  next_digit(17);
+  p += 18;
+    
+#undef next_digit
+
+  // Remaining digits don't matter.
+  while (isdigit(*p))
+    ++p;
+  
+  if (endptr)
+    *endptr = p;
+
+end:
   return (negative ? -val : val) * pow10(-digits);
 }
 

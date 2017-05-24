@@ -1,8 +1,8 @@
 # Disable built-in rules.
 .SUFFIXES: 
 
-CFLAGS	    	= -Wall -O3 -g # -DNDEBUG
-CXXFLAGS    	= $(CFLAGS) -std=c++14
+CFLAGS	    	= -std=c99   -Wall -O3 -g # -DNDEBUG
+CXXFLAGS    	= -std=c++14 -Wall -O3 -g # -DNDEBUG
 
 # How to compile a C or C++ file, and generate automatic dependencies.
 %.o:	    	    	%.c
