@@ -18,6 +18,8 @@ extern "C" {
 
   double intstrtod(char const*, char const**);
 
+  double intstrtod_unrolled(char const*, char const**);
+
 }
 
 //------------------------------------------------------------------------------
@@ -88,6 +90,17 @@ _intstrtod(
 }
 
 
+inline double
+_intstrtod_unrolled(
+  char const* s)
+{
+  char const* end;
+  auto const val = intstrtod_unrolled(s, &end);
+  assert(*end == 0);
+  return val;
+}
+
+
 using strtod_type = double (*)(char const*);
 
 template<strtod_type FN>
@@ -150,6 +163,20 @@ main(
 
   Timer timer{2, 0.25};
   std::cout 
+    << "intstrtod      "
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<_intstrtod>(str_arr, width, num)
+    << " time: " << timer(time_fn<_intstrtod>, str_arr, width, num) / num 
+    << std::endl
+
+    << "intstrtod_unr  "
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<_intstrtod_unrolled>(str_arr, width, num)
+    << " time: " << timer(time_fn<_intstrtod_unrolled>, str_arr, width, num) / num 
+    << std::endl
+
     << "strtod         "
     << " val=" 
     << std::fixed << std::setw(20) << std::setprecision(10)
@@ -176,13 +203,6 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_fn<str2dbl>(str_arr, width, num)
     << " time: " << timer(time_fn<str2dbl>, str_arr, width, num) / num 
-    << std::endl
-
-    << "intstrtod      "
-    << " val=" 
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<_intstrtod>(str_arr, width, num)
-    << " time: " << timer(time_fn<_intstrtod>, str_arr, width, num) / num 
     << std::endl
     ;
 

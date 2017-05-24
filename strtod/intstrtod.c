@@ -46,6 +46,216 @@ intstrtod(
 }
 
 
+double
+intstrtod_unrolled(
+  char const* ptr,
+  char const** endptr)
+{
+  char const* p = ptr;
+
+  int negative = 0;
+  if (*p == '-') {
+    negative = 1;
+    ++p;
+  }
+  else if (*p == '+')
+    ++p;
+
+  int digits = INT_MIN;
+  long val = 0;
+
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  if ('0' <= *p && *p <= '9') {
+    val = val * 10 + *p - '0';
+    ++digits;
+  }
+  else if (*p == '.' && digits < 0)
+    digits = 0;
+  else
+    goto end;
+  ++p;
+    
+  // Remaining digits don't matter.
+  while ('0' <= *p && *p <= '9')
+    ++p;
+  
+end:
+  if (endptr)
+    *endptr = p;
+
+  return (negative ? -val : val) * pow10(-digits);
+}
+
+
 inline double
 pow10(
   int const i)
