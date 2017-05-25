@@ -189,7 +189,10 @@ end:
   if (endptr)
     *endptr = p;
 
-  return (negative ? -val : val) * pow10(-digits);
+  return 
+    digits < 0 
+    ? (negative ? -val : val) 
+    : (negative ? -val : val) * pow10(-digits);
 }
 
 
@@ -253,7 +256,10 @@ intstrtod_unrolled2(
     *endptr = p;
 
 end:
-  return (negative ? -val : val) * pow10(-digits);
+  return 
+    digits < 0 
+    ? (negative ? -val : val) 
+    : (negative ? -val : val) * pow10(-digits);
 }
 
 
