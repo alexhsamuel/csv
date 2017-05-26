@@ -128,7 +128,7 @@ time_parse_fn(
   double sum = 0;
   for (size_t i = 0; i < num; ++i) {
     double const val 
-      = parse_double_3(arr + i * width, arr + i * width + width - 2);
+      = parse_double_3(arr + i * width, arr + i * width + width - 1);
     assert(!is_parse_error(val));
     sum += val;
   }

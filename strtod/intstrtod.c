@@ -3,7 +3,7 @@
 #include <limits.h>
 #include <stdint.h>
 
-inline double
+extern inline double
 pow10(
   int const i)
 {
@@ -127,7 +127,10 @@ intstrtod(
   if (endptr)
     *endptr = p;
 
-  return (negative ? -val : val) * pow10(-digits);
+  return 
+    digits < 0 
+    ? (negative ? -val : val) 
+    : (negative ? -val : val) * pow10(-digits);
 }
 
 
@@ -338,8 +341,9 @@ parse_double_3(
 #undef next_digit
 
   // Remaining digits don't matter.
-  while (p < end && isdigit(*p))
-    ++p;
+  for (; p < end; ++p)
+    if (!isdigit(*p))
+      return NAN_PARSE_ERROR;
   
 end:
   return 
