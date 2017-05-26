@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <iostream>
+#include <ctime>
 #include <vector>
 
 #include "timing.hh"
@@ -142,7 +143,11 @@ main(
   int const argc,
   char* const* const argv)
 {
+#if defined(BSD)
   srandomdev();
+#eise
+  srandom(time(nullptr));
+#endif
 
   struct option const long_options[] = {
     {"number", required_argument, nullptr, 'n'},
