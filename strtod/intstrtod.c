@@ -341,7 +341,7 @@ parse_double_3(
 #undef next_digit
 
   // Remaining digits don't matter.
-  for (; p < end; ++p)
+  for (; p < end && *p != '\0'; ++p)  // FIXME: Don't need the NUL check.
     if (!isdigit(*p))
       return NAN_PARSE_ERROR;
   
