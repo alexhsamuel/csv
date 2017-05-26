@@ -97,6 +97,46 @@ time_fn(
 }
 
 
+extern inline int
+same_double(
+  double const f1,
+  double const f2)
+{
+  return *((int64_t*) &f1) == *((int64_t*) &f2);
+}
+
+
+double const NAN_PARSE_ERROR = __builtin_nan("0x7ff8dce5318cebb6");
+
+
+extern inline int
+is_parse_error(
+  double const val)
+{
+  return same_double(val, NAN_PARSE_ERROR);
+}
+
+
+extern "C" double parse_double_3(char const*, char const*);
+
+inline double
+time_parse_fn(
+  char const* const arr,
+  size_t const width,
+  size_t const num)
+{
+  double sum = 0;
+  for (size_t i = 0; i < num; ++i) {
+    double const val 
+      = parse_double_3(arr + i * width, arr + i * width + width - 2);
+    assert(!is_parse_error(val));
+    sum += val;
+  }
+  return sum;
+}
+  
+
+
 int
 main(
   int const argc,
@@ -162,6 +202,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_fn<wrap_strtod<intstrtod_unrolled2>>(str_arr, width, num)
     << " time: " << timer(time_fn<wrap_strtod<intstrtod_unrolled2>>, str_arr, width, num) / num 
+    << std::endl
+
+    << "parse_double_3 "
+    << " val="
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_parse_fn(str_arr, width, num)
+    << " time: " << timer(time_parse_fn, str_arr, width, num) / num
     << std::endl
 
     << "strtod         "

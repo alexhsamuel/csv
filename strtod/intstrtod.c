@@ -263,3 +263,89 @@ end:
 }
 
 
+//------------------------------------------------------------------------------
+
+extern inline int
+same_double(
+  double const f1,
+  double const f2)
+{
+  return *((int64_t*) &f1) == *((int64_t*) &f2);
+}
+
+
+double const NAN_PARSE_ERROR = __builtin_nan("0x7ff8dce5318cebb6");
+
+
+extern inline int
+is_parse_error(
+  double const val)
+{
+  return same_double(val, NAN_PARSE_ERROR);
+}
+
+
+double
+parse_double_3(
+  char const* const ptr,
+  char const* const end)
+{
+  char const* p = ptr;
+
+  int negative = 0;
+  if (*p == '-') {
+    negative = 1;
+    ++p;
+  }
+  else if (*p == '+')
+    ++p;
+
+  int digits = INT_MIN;
+  long val = 0;
+
+#define next_digit(pos)                                                     \
+  if (end - pos == p)                                                       \
+    goto end;                                                               \
+  if (isdigit(p[pos])) {                                                    \
+    val = val * 10 + p[pos] - '0';                                          \
+    ++digits;                                                               \
+  }                                                                         \
+  else if (p[pos] == '.' && digits < 0)                                     \
+    digits = 0;                                                             \
+  else                                                                      \
+    return NAN_PARSE_ERROR
+
+  next_digit( 0);
+  next_digit( 1);
+  next_digit( 2);
+  next_digit( 3);
+  next_digit( 4);
+  next_digit( 5);
+  next_digit( 6);
+  next_digit( 7);
+  next_digit( 8);
+  next_digit( 9);
+  next_digit(10);
+  next_digit(11);
+  next_digit(12);
+  next_digit(13);
+  next_digit(14);
+  next_digit(15);
+  next_digit(16);
+  next_digit(17);
+  p += 18;
+    
+#undef next_digit
+
+  // Remaining digits don't matter.
+  while (p < end && isdigit(*p))
+    ++p;
+  
+end:
+  return 
+    digits < 0 
+    ? (negative ? -val : val) 
+    : (negative ? -val : val) * pow10(-digits);
+}
+
+
