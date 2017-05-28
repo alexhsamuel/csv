@@ -16,6 +16,13 @@ CXXFLAGS    	= -std=c++14 -Wall -O3 -g # -DNDEBUG
 %:  	    	    	%.o 
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
+# How to generate assembly.
+%.s:	    	    	%.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEPFLAGS) $< -S -o $@
+
+%.s:	    	    	%.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(DEPFLAGS) $< -S -o $@
+
 #-------------------------------------------------------------------------------
 
 strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
