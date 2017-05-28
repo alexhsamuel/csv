@@ -119,7 +119,11 @@ is_parse_error(
 
 
 extern "C" double parse_double_3(char const*, char const*);
+extern "C" double parse_double_4(char const*, char const*);
 
+using parse_double_type = double (*)(char const*, char const*);
+
+template<parse_double_type FN>
 inline double
 time_parse_fn(
   char const* const arr,
@@ -128,8 +132,7 @@ time_parse_fn(
 {
   double sum = 0;
   for (size_t i = 0; i < num; ++i) {
-    double const val 
-      = parse_double_3(arr + i * width, arr + i * width + width - 1);
+    double const val = FN(arr + i * width, arr + i * width + width - 1);
     assert(!is_parse_error(val));
     sum += val;
   }
@@ -212,8 +215,15 @@ main(
     << "parse_double_3 "
     << " val="
     << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_parse_fn(str_arr, width, num)
-    << " time: " << timer(time_parse_fn, str_arr, width, num) / num
+    << time_parse_fn<parse_double_3>(str_arr, width, num)
+    << " time: " << timer(time_parse_fn<parse_double_3>, str_arr, width, num) / num
+    << std::endl
+
+    << "parse_double_4 "
+    << " val="
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_parse_fn<parse_double_4>(str_arr, width, num)
+    << " time: " << timer(time_parse_fn<parse_double_4>, str_arr, width, num) / num
     << std::endl
 
     << "strtod         "
