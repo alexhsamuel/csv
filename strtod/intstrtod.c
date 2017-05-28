@@ -3,6 +3,9 @@
 #include <limits.h>
 #include <stdint.h>
 
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
+
 extern inline double
 pow10(
   int const i)
@@ -405,7 +408,75 @@ parse_double_4(
   next_digit(16);
   next_digit(17);
   p += 18;
-    
+
+#undef next_digit
+
+  // Remaining digits don't matter.
+  for (; p < end && *p != '\0'; ++p)  // FIXME: Don't need the NUL check.
+    if (!isdigit(*p))
+      return NAN_PARSE_ERROR;
+  
+end:
+  return 
+    digits < 0 
+    ? (negative ? -val : val) 
+    : (negative ? -val : val) * pow10(-digits);
+}
+
+
+double
+parse_double_5(
+  char const* const ptr,
+  char const* const end)
+{
+  char const* p = ptr;
+
+  int negative = 0;
+  if (*p == '-') {
+    negative = 1;
+    ++p;
+  }
+  else if (*p == '+')
+    ++p;
+
+  int digits = INT_MIN;
+  long val = 0;
+
+#define next_digit(pos)                                                     \
+  if (unlikely(end - pos == p))                                             \
+    goto end;                                                               \
+  {                                                                         \
+    int const d = p[pos] - '0';                                             \
+    if (likely(0 <= d && d <= 9)) {                                         \
+      val = val * 10 + d;                                                   \
+      ++digits;                                                             \
+    }                                                                       \
+    else if (likely(d == -2 && digits < 0))                                 \
+      digits = 0;                                                           \
+    else                                                                    \
+      return NAN_PARSE_ERROR;                                               \
+  }
+
+  next_digit( 0);
+  next_digit( 1);
+  next_digit( 2);
+  next_digit( 3);
+  next_digit( 4);
+  next_digit( 5);
+  next_digit( 6);
+  next_digit( 7);
+  next_digit( 8);
+  next_digit( 9);
+  next_digit(10);
+  next_digit(11);
+  next_digit(12);
+  next_digit(13);
+  next_digit(14);
+  next_digit(15);
+  next_digit(16);
+  next_digit(17);
+  p += 18;
+
 #undef next_digit
 
   // Remaining digits don't matter.
