@@ -25,9 +25,9 @@ CXXFLAGS    	= -std=c++14 -Wall -O3 -g # -DNDEBUG
 
 #-------------------------------------------------------------------------------
 
-strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
+src/csv2:   	    	    src/parse_double.o
 
-src/csv1:   	    	
+strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
