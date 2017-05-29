@@ -15,8 +15,8 @@ main(
   }
   double const d = parse_double_6(argv[1], argv[1] + strlen(argv[1]));
   double const r = strtod(argv[1], NULL);
-  printf("parse_double -> %.16e\n", d);
-  printf("strtod       -> %.16e\n", r);
+  printf("parse_double -> %.20f = %.20e\n", d, d);
+  printf("strtod       -> %.20f = %.20e\n", r, r);
   return EXIT_SUCCESS;
 }
 
