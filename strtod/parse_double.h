@@ -24,7 +24,7 @@ is_parse_error(
 }
 
 
-extern double parse_double(char const*, char const*);
+extern double parse_double_6(char const*, char const*);
 
 
 #ifdef __cplusplus

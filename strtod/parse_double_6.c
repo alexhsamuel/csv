@@ -8,7 +8,9 @@
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)
 
-extern inline double
+//------------------------------------------------------------------------------
+
+static inline double
 pow10(
   int const i)
 {
@@ -97,12 +99,15 @@ pow10(
 }
 
 
+//------------------------------------------------------------------------------
+
 double
-parse_double(
+parse_double_6(
   char const* const ptr,
   char const* const end)
 {
   char const* p = ptr;
+  int exp = 0;
 
   int negative = 0;
   if (*p == '-') {
@@ -116,9 +121,9 @@ parse_double(
   long val = 0;
 
 #define next_digit(pos)                                                     \
-  if (unlikely(end - pos == p))                                             \
+  if (unlikely(pos + p >= end))                                             \
     goto end;                                                               \
-  {                                                                         \
+  else {                                                                    \
     int const d = p[pos] - '0';                                             \
     if (likely(0 <= d && d <= 9)) {                                         \
       val = val * 10 + d;                                                   \
@@ -126,6 +131,10 @@ parse_double(
     }                                                                       \
     else if (likely(d == -2 && digits < 0))                                 \
       digits = 0;                                                           \
+    else if (likely(d == 21 || d == 53)) {                                  \
+      p += pos + 1;                                                         \
+      goto exp;                                                             \
+    }                                                                       \
     else                                                                    \
       return NAN_PARSE_ERROR;                                               \
   }
@@ -152,16 +161,74 @@ parse_double(
 
 #undef next_digit
 
-  // Remaining digits don't matter.
-  for (; p < end && *p != '\0'; ++p)  // FIXME: Don't need the NUL check.
-    if (!isdigit(*p))
+  // Process any remaining digits.
+  while (p < end) {
+    int const d = *p++ - '0';
+    if (likely(0 <= d && d <= 9))
+      // Remaining digits don't matter.
+      ;
+    else if (likely(d == 21 || d == 53)) 
+      goto exp;
+    else if (d == -48)  // FIXME: This should not be needed.
+      break;
+    else
       return NAN_PARSE_ERROR;
+  }
   
 end:
-  return 
-    digits < 0 
-    ? (negative ? -val : val) 
-    : (negative ? -val : val) * pow10(-digits);
+  exp += digits < 0 ? 0 : -digits;
+  if (negative)
+    val = -val;
+  return exp == 0 ? val : val * pow10(exp);
+
+exp:;
+  // Got an 'E'; parse the exponent of scientific E-notation.
+
+  // Parse the exponent sign, if any.
+  int exp_negative = 0;
+  if (*p == '-') {
+    exp_negative = 1;
+    ++p;
+  }
+  else if (*p == '+')
+    ++p;
+
+  // We partially unroll the loop.  Parse the first exponential digit.
+  if (unlikely(p == end))
+    // No digits-- missing exponent.
+    return NAN_PARSE_ERROR;
+  else {
+    int const d = *p++ - '0';
+    if (likely(0 <= d && d <= 9))
+      exp = d;
+    else
+      return NAN_PARSE_ERROR;
+  }
+
+  // Parse the second exponential digit.
+  if (p == end)
+    goto exp_end;
+  else {
+    int const d = *p++ - '0';
+    if (likely(0 <= d && d <= 9))
+      exp = 10 * exp + d;
+    else
+      return NAN_PARSE_ERROR;
+  }
+
+  // Parse the third and subsequent exponential digits.
+  while (p < end) {
+    int const d = *p++ - '0';
+    if (likely(0 <= d && d <= 9))
+      exp = 10 * exp + d;
+    else
+      return NAN_PARSE_ERROR;
+  }
+
+exp_end:
+  if (exp_negative) 
+    exp = -exp;
+  goto end;
 }
 
 

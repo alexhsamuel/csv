@@ -1,8 +1,8 @@
 # Disable built-in rules.
 .SUFFIXES: 
 
-CFLAGS	    	= -std=c99   -Wall -O3 -g # -DNDEBUG
-CXXFLAGS    	= -std=c++14 -Wall -O3 -g # -DNDEBUG
+CFLAGS	    	= -std=c99   -Wall -I . -O3 -g # -DNDEBUG
+CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g # -DNDEBUG
 
 # How to compile a C or C++ file, and generate automatic dependencies.
 %.o:	    	    	%.c
@@ -25,13 +25,13 @@ CXXFLAGS    	= -std=c++14 -Wall -O3 -g # -DNDEBUG
 
 #-------------------------------------------------------------------------------
 
-src/csv2:   	    	    src/parse_double.o
+src/csv2:   	    	    strtod/parse_double_6.o
 
-strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
+strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o strtod/parse_double_6.o
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
-strtod/test_parse_double:    strtod/intstrtod.o
+strtod/test_parse_double:   strtod/parse_double_6.o
 
 .PHONY: clean
 clean:

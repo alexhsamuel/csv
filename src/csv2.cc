@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <vector>
 
-#include "parse_double.h"
+#include "strtod/parse_double.h"
 #include "ThreadPool.hh"
 
 using std::experimental::optional;
@@ -347,7 +347,7 @@ parse<float64_t>(
     // Empty string.
     return {};
 
-  auto const val = parse_double(buf.ptr, buf.ptr + buf.len);
+  auto const val = parse_double_6(buf.ptr, buf.ptr + buf.len);
   if (is_parse_error(val))
     return {};
   else
@@ -417,8 +417,10 @@ parse_number_arr(
       if (*val > max)
         max = *val;
     }
-    else
+    else {
+      std::cerr << "FAIL: [" << field << "]\n";
       return {};
+    }
   }
 
   assert(vals.size() == len - (header ? 1 : 0));
