@@ -25,5 +25,5 @@ gen = rnd.dataframe(
 len = int(sys.argv[1])
 df = gen(len)
 df.index.name = "index"
-df.to_csv(sys.stdout, float_format="%f")
+df.to_csv(sys.stdout)
 
