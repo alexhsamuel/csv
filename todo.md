@@ -2,9 +2,13 @@
 - `parse_double()` tests
   - test harness
   - basic test cases
+  - very large and very small input cases
+  - 10000000000000000000000000000000000000e-360
   - erroneous input cases
   - check last digit vs. `strtod()`
+- special case optimizations
+  - optimize leading zeros (00000000001)
+  - optimize leading decimal point (.123456)
+  - optimize leading decimal point and zeros (0.00000000001)
 - csv thread pool chunking... does it matter?
-
-
 
