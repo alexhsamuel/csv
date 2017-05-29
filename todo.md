@@ -12,3 +12,11 @@
   - optimize leading decimal point and zeros (0.00000000001)
 - csv thread pool chunking... does it matter?
 
+
+# Notes
+
+Possibly, we don't need the `parse_double()` API with an end pointer.  Instead,
+use the `strtod()` API and check that the returned end pointer is in the correct
+place.  The problem is with the very last double in the file; `strtod()` may
+read past the end of the buffer.
+
