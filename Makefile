@@ -44,10 +44,9 @@ clean:
 GTEST_ROOT  	= vendor/googletest
 GTEST_LIB   	= $(GTEST_ROOT)/make/gtest_main.a
 
-$(GTEST_LIB):
-	$(MAKE) -C $(GEST_ROOT)/make
+$(GTEST_LIB): 
+	$(MAKE) -C $(GTEST_ROOT)/make
 
-strtod/test_parse_double:	strtod/parse_double_6.o
+strtod/test_parse_double:	strtod/parse_double_6.o $(GTEST_LIB)
 CPPFLAGS    	+= -I $(GTEST_ROOT)/include
-LDLIBS	    	+= $(GTEST_LIB)
 
