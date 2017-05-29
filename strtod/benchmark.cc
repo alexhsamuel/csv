@@ -121,6 +121,7 @@ is_parse_error(
 extern "C" double parse_double_3(char const*, char const*);
 extern "C" double parse_double_4(char const*, char const*);
 extern "C" double parse_double_5(char const*, char const*);
+extern "C" double parse_double_6(char const*, char const*);
 
 using parse_double_type = double (*)(char const*, char const*);
 
@@ -232,6 +233,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_parse_fn<parse_double_5>(str_arr, width, num)
     << " time: " << timer(time_parse_fn<parse_double_5>, str_arr, width, num) / num
+    << std::endl
+
+    << "parse_double_6 "
+    << " val="
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_parse_fn<parse_double_6>(str_arr, width, num)
+    << " time: " << timer(time_parse_fn<parse_double_6>, str_arr, width, num) / num
     << std::endl
 
     << "strtod         "

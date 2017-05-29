@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern double parse_double_5(char const*, char const*);
+extern double parse_double_6(char const*, char const*);
 
 int
 main(
@@ -13,8 +13,10 @@ main(
     fprintf(stderr, "usage: %s NUMBER\n", argv[0]);
     return EXIT_FAILURE;
   }
-  double const d = parse_double_5(argv[1], argv[1] + strlen(argv[1]));
-  printf("%.16e\n", d);
+  double const d = parse_double_6(argv[1], argv[1] + strlen(argv[1]));
+  double const r = strtod(argv[1], NULL);
+  printf("parse_double -> %.16e\n", d);
+  printf("strtod       -> %.16e\n", r);
   return EXIT_SUCCESS;
 }
 
