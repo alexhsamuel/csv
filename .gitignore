@@ -3,3 +3,5 @@
 data/*.csv
 *.o
 *.s
+vendor/googletest/make/gtest_main.a
+vendor/googletest/make/sample1_unittest
