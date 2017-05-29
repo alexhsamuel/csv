@@ -1,5 +1,5 @@
 *.dSYM
 .cache
-data/
+data/*.csv
 *.o
 *.s
