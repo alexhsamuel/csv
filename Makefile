@@ -33,3 +33,9 @@ strtod/test_intstrtod:	    strtod/intstrtod.o
 
 strtod/test_parse_double:    strtod/intstrtod.o
 
+.PHONY: clean
+clean:
+	rm -f src/*.o strtod/*.o
+	rm -f src/csv1 src/csv2
+	rm -f strtod/benchmark strtod/test_intstrtod strtod/test_parse_double
+
