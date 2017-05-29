@@ -31,4 +31,5 @@ strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
+strtod/test_parse_double:    strtod/intstrtod.o
 
