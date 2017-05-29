@@ -31,11 +31,23 @@ strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o str
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
-strtod/test_parse_double:   strtod/parse_double_6.o
+strtod/test:   	    	    strtod/parse_double_6.o
 
 .PHONY: clean
 clean:
 	rm -f src/*.o strtod/*.o
 	rm -f src/csv1 src/csv2
-	rm -f strtod/benchmark strtod/test_intstrtod strtod/test_parse_double
+	rm -f strtod/benchmark strtod/test_intstrtod strtod/test_parse_double strtod/nans
+
+#-------------------------------------------------------------------------------
+
+GTEST_ROOT  	= vendor/googletest
+GTEST_LIB   	= $(GTEST_ROOT)/make/gtest_main.a
+
+$(GTEST_LIB):
+	$(MAKE) -C $(GEST_ROOT)/make
+
+strtod/test_parse_double:	strtod/parse_double_6.o
+CPPFLAGS    	+= -I $(GTEST_ROOT)/include
+LDLIBS	    	+= $(GTEST_LIB)
 
