@@ -109,6 +109,7 @@ parse_double_6(
   char const* p = ptr;
   int exp = 0;
 
+  // Parse a sign, if present.
   int negative = 0;
   if (*p == '-') {
     negative = 1;
@@ -120,6 +121,25 @@ parse_double_6(
   int digits = INT_MIN;
   long val = 0;
 
+  // Next should be either a digit or a decimal point.
+  if (unlikely(p >= end))
+    return NAN_PARSE_ERROR;
+  else {
+    int const d = *p - '0';
+    if (likely(0 <= d && d <= 9)) {
+      val = d;
+      ++digits;  // FIXME: Unnecessary?
+    }
+    else if (likely(d == '.' - '0' && digits < 0))
+      digits = 0;
+    else
+      return NAN_PARSE_ERROR;
+  }
+
+  // Unroll parsing additional characters.  Each may be a digit, or a decimal
+  // point if one hasn't been seen already, or an 'E', which indicates
+  // E-notation.
+
 #define next_digit(pos)                                                     \
   if (unlikely(pos + p >= end))                                             \
     goto end;                                                               \
@@ -129,9 +149,9 @@ parse_double_6(
       val = val * 10 + d;                                                   \
       ++digits;                                                             \
     }                                                                       \
-    else if (likely(d == -2 && digits < 0))                                 \
+    else if (likely(d == '.' - '0' && digits < 0))                          \
       digits = 0;                                                           \
-    else if (likely(d == 21 || d == 53)) {                                  \
+    else if (likely(d == 'e' - '0' || d == 'E' - '0')) {                    \
       p += pos + 1;                                                         \
       goto exp;                                                             \
     }                                                                       \
@@ -139,7 +159,6 @@ parse_double_6(
       return NAN_PARSE_ERROR;                                               \
   }
 
-  next_digit( 0);
   next_digit( 1);
   next_digit( 2);
   next_digit( 3);
@@ -161,13 +180,15 @@ parse_double_6(
 
 #undef next_digit
 
+  // FIXME: If we still haven't seen a decimal point, the number is inf.
+
   // Process any remaining digits.
-  while (p < end) {
+  while (unlikely(p < end)) {
     int const d = *p++ - '0';
     if (likely(0 <= d && d <= 9))
       // Remaining digits don't matter.
       ;
-    else if (likely(d == 21 || d == 53)) 
+    else if (likely(d == 'e' - '0' || d == 'E' - '0')) 
       goto exp;
     else if (d == -48)  // FIXME: This should not be needed.
       break;
@@ -226,9 +247,11 @@ exp:;
   }
 
 exp_end:
+  // End of the exponent.
   if (exp_negative) 
     exp = -exp;
   goto end;
+
 }
 
 
