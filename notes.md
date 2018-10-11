@@ -74,7 +74,9 @@ Requirements:
 - Types of columns, or convert automatically.
 - Fixed-length or object strings?  Or cut over automatically?
 - mmap- and non mmap-based APIs.
-- UTF-8 support
+- UTF-8 support.
+- Date and datetime support.
+- Auto or manual categorical support.
 
 ```py
 from ntab.io.delimited import parse_arrays
