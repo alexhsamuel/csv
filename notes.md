@@ -22,7 +22,7 @@ float64 column len=1000001 min=1.29199e-06 max=0.999998
 
 real	0m5.702s
 user	0m5.287s
-sys	0m0.382s
+sys	    0m0.382s
 ```
 
 - With threads, 3.9 s.
@@ -50,7 +50,7 @@ float64 column 'uniform' len=10000001 min=1.52576e-07 max=1
 
 real	0m31.571s
 user	1m25.400s
-sys	0m3.729s
+sys	    0m3.729s
 ```
 
 Pandas:
@@ -59,3 +59,30 @@ Pandas:
 In [2]: %timeit pandas.read_csv("data/gencsv-10m.csv")
 42.9 s ± 578 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
 ```
+
+---
+
+# API?
+
+Requirements:
+- Delimiter.
+- How repeated delimiters are handled, particularly (or only) spaces.
+- Quoting.  (And escaping?)
+- Whether to convert columns to typed arrs.  Separate function?
+- Columns to include or skip.
+- Specify column names or use from file.
+- Types of columns, or convert automatically.
+- Fixed-length or object strings?  Or cut over automatically?
+- mmap- and non mmap-based APIs.
+- UTF-8 support
+
+```py
+from ntab.io.delimited import parse_arrays
+
+arrs = parse_arrays(
+  path,
+  types={},
+  ...
+)
+```
+
