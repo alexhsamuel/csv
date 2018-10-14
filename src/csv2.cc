@@ -108,10 +108,10 @@ parse_str_arr(
 
 //------------------------------------------------------------------------------
 
-inline bool oadd(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_uaddll_overflow(a, b, &r); }
-inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddll_overflow(a, b, &r); }
-inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umulll_overflow(a, b, &r); }
-inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smulll_overflow(a, b, &r); }
+inline bool oadd(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_uaddl_overflow(a, b, &r); }
+inline bool oadd( int64_t a,  int64_t b,  int64_t& r) { return __builtin_saddl_overflow(a, b, &r); }
+inline bool omul(uint64_t a, uint64_t b, uint64_t& r) { return __builtin_umull_overflow(a, b, &r); }
+inline bool omul( int64_t a,  int64_t b,  int64_t& r) { return __builtin_smull_overflow(a, b, &r); }
 
 template<class T> inline optional<T> parse(Buffer const buf);
 

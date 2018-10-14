@@ -2,7 +2,8 @@
 .SUFFIXES: 
 
 CFLAGS	    	= -std=c99   -Wall -I . -O3 -g # -DNDEBUG
-CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g # -DNDEBUG
+CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g -fpermissive # -DNDEBUG
+LDLIBS          = -lpthread
 
 # How to compile a C or C++ file, and generate automatic dependencies.
 %.o:	    	    	%.c
