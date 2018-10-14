@@ -158,16 +158,18 @@ main(
     {"number", required_argument, nullptr, 'n'},
     {"width", required_argument, nullptr, 'w'},
     {"scale", required_argument, nullptr, 's'},
+    {"time", required_argument, nullptr, 't'},
     {nullptr, 0, nullptr, 0}
   };
 
   size_t num = 1024 * 1024;
   size_t width = 32;
   double scale = 1;
+  double time = 2;
 
   char ch;
   while ((ch = getopt_long(
-            argc, argv, "n:w:s:", long_options, nullptr)) != -1)
+            argc, argv, "n:w:s:t:", long_options, nullptr)) != -1)
     switch (ch) {
     case 'n':
       num = (size_t) atol(optarg);
@@ -177,6 +179,9 @@ main(
       break;
     case 's':
       scale = wrap_strtod<strtod>(optarg);
+      break;
+    case 't':
+      time = wrap_strtod<strtod>(optarg);
       break;
     default:
       std::cerr << "invalid usage\n";
@@ -191,7 +196,7 @@ main(
     std::cout << std::flush;
   }
 
-  Timer timer{2, 0.25};
+  Timer timer{time, 0.25};
   std::cout 
     << "intstrtod      "
     << " val=" 

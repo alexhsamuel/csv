@@ -2,3 +2,4 @@ benchmark
 test_intstrtod
 test_parse_double
 nans
+test
