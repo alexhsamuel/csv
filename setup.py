@@ -1,7 +1,6 @@
 from   glob import glob
 from   setuptools import setup, Extension
 
-
 setup(
     name            ="tabcsv",
     version         ="0.0.0",
