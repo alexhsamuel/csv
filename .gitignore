@@ -3,7 +3,9 @@
 data/*.csv
 *.o
 *.s
+*.a
+*.so
 vendor/googletest/make/gtest_main.a
 vendor/googletest/make/sample1_unittest
 build/
-tabcsv/ext.cpython*
+
