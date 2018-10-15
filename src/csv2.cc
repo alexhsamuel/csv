@@ -1,9 +1,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include <limits>
-#include <string>
-#include <vector>
 
 #include "strtod/parse_double.h"
 #include "csv2.hh"

@@ -2,7 +2,7 @@
 .SUFFIXES: 
 
 CFLAGS	    	= -std=c99   -Wall -I . -O3 -g # -DNDEBUG
-CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g -fpermissive # -DNDEBUG
+CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g -fpermissive -fPIC # -DNDEBUG
 LDLIBS          = -lpthread
 
 # How to compile a C or C++ file, and generate automatic dependencies.
@@ -27,6 +27,10 @@ LDLIBS          = -lpthread
 #-------------------------------------------------------------------------------
 
 src/csv2:   	    	    strtod/parse_double_6.o src/main.o
+
+src/libcsv2.a: 	    	    strtod/parse_double_6.o src/csv2.o src/load.o
+	rm -f $@
+	ar -cq $@ $^
 
 strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o strtod/parse_double_6.o
 

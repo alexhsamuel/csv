@@ -1,6 +1,8 @@
 #include <cassert>
 #include <experimental/optional>
 #include <iostream>
+#include <string>
+#include <vector>
 
 using std::experimental::optional;
 
@@ -234,4 +236,9 @@ extern Array
 parse_array(
   Column const* col,
   bool header=true);
+
+
+//------------------------------------------------------------------------------
+
+void load_file(char const*);
 
