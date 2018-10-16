@@ -157,6 +157,7 @@ struct StrArr
   size_t len;
   size_t width;
   std::vector<char> chars;
+  std::string name;
 };
 
 
@@ -237,8 +238,4 @@ parse_array(
   Column const* col,
   bool header=true);
 
-
-//------------------------------------------------------------------------------
-
-void load_file(char const*);
 

@@ -84,7 +84,8 @@ split_columns(
 
 StrArr
 parse_str_arr(
-  Column const& col)
+  Column const& col,
+  bool const header=true)
 {
   auto const len = col.size();
   if (len == 0)
@@ -96,10 +97,19 @@ parse_str_arr(
   char* base = chars.data();
 
   size_t i = 0;
-  for (auto const& field : col)
-    memcpy(base + i++ * width, field.ptr, field.len);
+  auto fields = col.begin();
 
-  return {len, width, std::move(chars)};
+  std::string name;
+  if (header) {
+    auto const& n = *fields;
+    name = std::string{n.ptr, n.len};
+    ++fields;
+  }
+
+  for (; fields < col.end(); ++fields)
+    memcpy(base + i++ * width, fields->ptr, fields->len);
+
+  return {len, width, std::move(chars), name};
 }
 
 

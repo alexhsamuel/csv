@@ -4,9 +4,11 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#define PY_ARRAY_UNIQUE_SYMBOL TABCSV_ARRAY_API
+#include <numpy/arrayobject.h>
+
 #include "ThreadPool.hh"
 #include "csv2.hh"
-
 
 PyObject*
 load_file(
@@ -30,6 +32,9 @@ load_file(
   auto const cols = split_columns(buf);
   std::cerr << "done with split\n";
 
+  PyObject* ndas = PyDict_New();
+  assert(ndas != NULL);
+
   {
     ThreadPool pool(5);
     std::vector<std::future<Array>> results;
@@ -37,10 +42,39 @@ load_file(
     for (auto const& col : cols)
       results.push_back(pool.enqueue(parse_array, &col, true));
 
-    for (auto&& result : results)
-      std::cout << result.get();
+    for (auto&& result : results) {
+      Array const& arr = result.get();
+      std::cout << arr;
+
+      std::string name;
+      PyObject* nda;
+
+      if (arr.variant() == Array::VARIANT_INT) {
+        auto const& int_arr = arr.int_arr();
+        name = int_arr.name;
+        npy_intp len = int_arr.len;
+        nda = PyArray_EMPTY(1, &len, NPY_INT64, 0);
+        memcpy(PyArray_DATA(nda), &int_arr.vals[0], len * sizeof(int64_t));
+      }
+      else if (arr.variant() == Array::VARIANT_FLOAT) {
+        auto const& float_arr = arr.float_arr();
+        name = float_arr.name;
+        npy_intp len = float_arr.len;
+        nda = PyArray_EMPTY(1, &len, NPY_FLOAT64, 0);
+        memcpy(PyArray_DATA(nda), &float_arr.vals[0], len * sizeof(float64_t));
+      }
+      else if (arr.variant() == Array::VARIANT_STRING) {
+        // FIXME
+        Py_INCREF(Py_None);
+        nda = Py_None;
+      }
+      else
+        assert(false);
+      PyDict_SetItemString(ndas, name.c_str(), nda);
+    }
   }
 
+  // FIXME: Do this earlier.
   res = munmap(ptr, info.st_size);
   if (res != 0) {
     PyErr_SetFromErrno(PyExc_IOError);
@@ -52,8 +86,7 @@ load_file(
   if (res != 0)
     return PyErr_SetFromErrno(PyExc_IOError);
 
-  Py_INCREF(Py_None);
-  return Py_None;
+  return ndas;
 }
 
 
@@ -98,6 +131,8 @@ module_def = {
 PyMODINIT_FUNC
 PyInit_ext(void)
 {
+  import_array();
+
   PyObject* module = PyModule_Create(&module_def);
   assert(module != NULL);
   return module;

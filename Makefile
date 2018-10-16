@@ -28,7 +28,7 @@ LDLIBS          = -lpthread
 
 src/csv2:   	    	    strtod/parse_double_6.o src/main.o
 
-src/libcsv2.a: 	    	    strtod/parse_double_6.o src/csv2.o src/load.o
+src/libcsv2.a: 	    	    strtod/parse_double_6.o src/csv2.o
 	rm -f $@
 	ar -cq $@ $^
 
