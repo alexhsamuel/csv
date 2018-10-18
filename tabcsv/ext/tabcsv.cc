@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL TABCSV_ARRAY_API
 #include <numpy/arrayobject.h>
 
@@ -47,21 +48,23 @@ load_file(
       std::cout << arr;
 
       std::string name;
-      PyObject* nda;
+      PyObject* nda = NULL;
 
       if (arr.variant() == Array::VARIANT_INT) {
         auto const& int_arr = arr.int_arr();
         name = int_arr.name;
         npy_intp len = int_arr.len;
         nda = PyArray_EMPTY(1, &len, NPY_INT64, 0);
-        memcpy(PyArray_DATA(nda), &int_arr.vals[0], len * sizeof(int64_t));
+        auto const data = PyArray_DATA((PyArrayObject*) nda);
+        memcpy(data, &int_arr.vals[0], len * sizeof(int64_t));
       }
       else if (arr.variant() == Array::VARIANT_FLOAT) {
         auto const& float_arr = arr.float_arr();
         name = float_arr.name;
         npy_intp len = float_arr.len;
         nda = PyArray_EMPTY(1, &len, NPY_FLOAT64, 0);
-        memcpy(PyArray_DATA(nda), &float_arr.vals[0], len * sizeof(float64_t));
+        auto const data = PyArray_DATA((PyArrayObject*) nda);
+        memcpy(data, &float_arr.vals[0], len * sizeof(float64_t));
       }
       else if (arr.variant() == Array::VARIANT_STRING) {
         // FIXME
