@@ -106,8 +106,10 @@ parse_str_arr(
     ++fields;
   }
 
-  for (; fields < col.end(); ++fields)
-    memcpy(base + i++ * width, fields->ptr, fields->len);
+  for (; fields != col.end(); ++fields) {
+    auto const field = *fields;
+    memcpy(base + i++ * width, field.ptr, field.len);
+  }
 
   return {len, width, std::move(chars), name};
 }
