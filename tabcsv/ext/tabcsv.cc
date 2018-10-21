@@ -10,6 +10,7 @@
 
 #include "ThreadPool.hh"
 #include "csv2.hh"
+#include "parse_double.h"
 
 PyObject*
 load_file(
@@ -120,8 +121,24 @@ fn_load_file(
 }
 
 
+static PyObject*
+fn_parse_double_6(
+  PyObject* const self,
+  PyObject* const args)
+{
+  char const* str;
+  int len;
+
+  if (!PyArg_ParseTuple(args, "s#", &str, &len))
+    return NULL;
+
+  return PyFloat_FromDouble(parse_double_6(str, str + len));
+}
+
+
 static PyMethodDef methods[] = {
   {"load_file", (PyCFunction) fn_load_file, METH_VARARGS | METH_KEYWORDS, NULL},
+  {"parse_double_6", (PyCFunction) fn_parse_double_6, METH_VARARGS, NULL},
   {NULL, NULL, 0, NULL}
 };
 
