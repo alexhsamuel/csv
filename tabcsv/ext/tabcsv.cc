@@ -30,7 +30,6 @@ load_file(
   Buffer buf{static_cast<char const*>(ptr), (size_t) info.st_size};
 
   auto const cols = split_columns(buf);
-  std::cerr << "done with split\n";
 
   PyObject* ndas = PyDict_New();
   assert(ndas != NULL);
@@ -66,9 +65,14 @@ load_file(
         memcpy(data, &float_arr.vals[0], len * sizeof(float64_t));
       }
       else if (arr.variant() == Array::VARIANT_STRING) {
-        // FIXME
-        Py_INCREF(Py_None);
-        nda = Py_None;
+        auto const& str_arr = arr.str_arr();
+        name = str_arr.name;
+        npy_intp len = str_arr.len;
+        nda = PyArray_New(
+          &PyArray_Type, 1, &len, NPY_STRING, NULL, NULL, str_arr.width, 0, 
+          NULL);
+        auto const data = PyArray_DATA((PyArrayObject*) nda);
+        memcpy(data, &str_arr.chars[0], len * str_arr.width);
       }
       else
         assert(false);
