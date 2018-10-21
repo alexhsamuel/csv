@@ -1,8 +1,13 @@
 import csv
 from   pathlib import Path
+import pytest
 import tabcsv
 
-def compare_to_csv(path):
+
+@pytest.mark.parametrize("path", [
+    Path(__file__).parent / "basic0.csv",
+])
+def test_compare_to_csv(path):
     with open(path) as file:
         reader = csv.reader(file)
         header = next(reader)
@@ -23,9 +28,5 @@ def compare_to_csv(path):
         csv_arr = csv_arrs[name]
         for a, b in zip(arr, csv_arr):
             assert a == type(a)(b)
-
-
-def test_basic0():
-    compare_to_csv(Path(__file__).parent / "basic0.csv")
 
 
