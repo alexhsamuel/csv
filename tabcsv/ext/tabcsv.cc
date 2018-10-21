@@ -22,7 +22,6 @@ load_file(
   int res = fstat(fd, &info);
   if (res != 0)
     return PyErr_SetFromErrno(PyExc_IOError);
-  std::cout << "st_size = " << info.st_size << std::endl;
   
   void* ptr = mmap(nullptr, info.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (ptr == MAP_FAILED)
@@ -99,24 +98,26 @@ load_file(
 extern "C" {
 
 static PyObject*
-method_load_file(
+fn_load_file(
   PyObject* const self,
   PyObject* const args,
   PyObject* const kw_args)
 {
   static char const* const keywords[] = {"path", NULL};
-  char const* path;
+  PyBytesObject* path;
 
   if (!PyArg_ParseTupleAndKeywords(
-        args, kw_args, "s", (char**) keywords, &path))
+        args, kw_args, "O&", (char**) keywords, PyUnicode_FSConverter, &path))
     return NULL;
 
-  return load_file(path);
+  auto res = load_file(PyBytes_AS_STRING(path));
+  Py_DECREF(path);
+  return res;
 }
 
 
 static PyMethodDef methods[] = {
-  {"load_file", (PyCFunction) method_load_file, METH_VARARGS | METH_KEYWORDS, NULL},
+  {"load_file", (PyCFunction) fn_load_file, METH_VARARGS | METH_KEYWORDS, NULL},
   {NULL, NULL, 0, NULL}
 };
 
