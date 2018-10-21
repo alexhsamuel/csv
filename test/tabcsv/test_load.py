@@ -22,7 +22,7 @@ def compare_to_csv(path):
 
         csv_arr = csv_arrs[name]
         for a, b in zip(arr, csv_arr):
-            assert a == b
+            assert a == type(a)(b)
 
 
 def test_basic0():
