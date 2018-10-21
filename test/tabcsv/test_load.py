@@ -14,7 +14,7 @@ def compare_to_csv(path):
     assert len(arrs) == len(csv_arrs)
     assert list(arrs) == list(csv_arrs)
 
-    length = len(next(csv_arrs.values()))
+    length = len(next(iter(csv_arrs.values())))
     assert all( len(a) == length for a in csv_arrs.values() )
 
     for name, arr in arrs.items():
