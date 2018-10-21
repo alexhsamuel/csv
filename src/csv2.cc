@@ -216,19 +216,24 @@ parse_number_arr(
   Column const& col,
   bool const header=true)
 {
-  auto const len = col.size();
-  if (len == 0)
-    // FIXME: What if header is true?
-    return NumberArr<T>{0, 0, 0, {}, {}};
-
+  auto len = col.size();
   auto fields = col.begin();
 
   std::string name;
   if (header) {
+    if (len == 0)
+      // Missing header.
+      // FIXME: Check this earlier?
+      return {};
+
     auto const& n = *fields;
     name = std::string{n.ptr, n.len};
     ++fields;
+    --len;
   }
+
+  if (len == 0)
+    return NumberArr<T>{0, 0, 0, {}, name};
 
   // Parse the first value.
   auto const val = PARSE(*fields);
@@ -261,7 +266,7 @@ parse_number_arr(
     }
   }
 
-  assert(vals.size() == len - (header ? 1 : 0));
+  assert(vals.size() == len);
   return NumberArr<T>{len, min, max, std::move(vals), name};
 }
 
