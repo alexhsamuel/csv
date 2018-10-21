@@ -1,5 +1,6 @@
 *.dSYM
-.cache
+.cache/
+.pytest_cache/
 data/*.csv
 *.o
 *.s
