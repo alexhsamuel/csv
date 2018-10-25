@@ -86,3 +86,17 @@ arrs = parse_arrays(
 )
 ```
 
+---
+
+# strtod
+
+- https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
+
+- http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.451.6099&rep=rep1&type=pdf
+
+Jaffer:
+- https://arxiv.org/pdf/1310.8121v6.pdf
+
+Gay:
+- http://www.netlib.org/fp/
+
