@@ -32,11 +32,13 @@ src/libcsv2.a: 	    	    strtod/parse_double_6.o src/csv2.o
 	rm -f $@
 	ar -cq $@ $^
 
-strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o strtod/parse_double_6.o
+strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o strtod/parse_double_6.o strtod/gay/dtoa.o
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
 strtod/test:   	    	    strtod/parse_double_6.o
+
+strtod/gay/dtoa.o: CFLAGS += -DIEEE_8087
 
 .PHONY: clean
 clean:

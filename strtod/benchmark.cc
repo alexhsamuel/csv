@@ -22,6 +22,8 @@ extern "C" {
   double intstrtod_unrolled1(char const*, char**);
   double intstrtod_unrolled2(char const*, char**);
 
+  double strtod_gay(const char*, char**);
+
 }
 
 //------------------------------------------------------------------------------
@@ -274,6 +276,14 @@ main(
     << time_fn<str2dbl>(str_arr, width, num)
     << " time: " << timer(time_fn<str2dbl>, str_arr, width, num) / num 
     << std::endl
+
+    << "strtod_gay     "
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<wrap_strtod<strtod_gay>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<strtod_gay>>, str_arr, width, num) / num 
+    << std::endl
+
     ;
 
   return EXIT_SUCCESS;
