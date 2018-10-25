@@ -32,7 +32,28 @@ src/libcsv2.a: 	    	    strtod/parse_double_6.o src/csv2.o
 	rm -f $@
 	ar -cq $@ $^
 
-strtod/benchmark:   	    strtod/pandas.o strtod/str2dbl.o strtod/intstrtod.o strtod/parse_double_6.o strtod/gay/dtoa.o
+strtod/benchmark:   	    strtod/pandas.o \
+			    strtod/str2dbl.o \
+                            strtod/intstrtod.o \
+                            strtod/parse_double_6.o \
+                            strtod/gay/dtoa.o \
+                            double-conversion/bignum.o \
+                            double-conversion/bignum-dtoa.o \
+                            double-conversion/cached-powers.o \
+                            double-conversion/diy-fp.o \
+                            double-conversion/double-conversion.o \
+                            double-conversion/fast-dtoa.o \
+                            double-conversion/fixed-dtoa.o \
+                            double-conversion/strtod.o
+
+strtod/test_s2dc:   	    double-conversion/bignum.o \
+                            double-conversion/bignum-dtoa.o \
+                            double-conversion/cached-powers.o \
+                            double-conversion/diy-fp.o \
+                            double-conversion/double-conversion.o \
+                            double-conversion/fast-dtoa.o \
+                            double-conversion/fixed-dtoa.o \
+                            double-conversion/strtod.o
 
 strtod/test_intstrtod:	    strtod/intstrtod.o
 

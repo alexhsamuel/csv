@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "timing.hh"
+#include "double-conversion/double-conversion.h"
 
 extern "C" {
 
@@ -80,6 +81,28 @@ _precise_xstrtod(
   char* end;
   auto const val = precise_xstrtod(s, &end, '.', 'e', 0, 0);
   assert(*end == 0);
+  return val;
+}
+
+
+static double_conversion::StringToDoubleConverter const 
+S2DC{
+  double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK,
+  -100,
+  -101,
+  "infinity",
+  "NaN",
+  double_conversion::StringToDoubleConverter::kNoSeparator
+};
+
+inline double
+_StringToDoubleConverter(
+  char const* start,
+  char const* end)
+{
+  int count = -1;
+  auto const val = S2DC.StringToDouble(start, end - start, &count);
+  assert(count > 0);
   return val;
 }
 
@@ -282,6 +305,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_fn<wrap_strtod<strtod_gay>>(str_arr, width, num)
     << " time: " << timer(time_fn<wrap_strtod<strtod_gay>>, str_arr, width, num) / num 
+    << std::endl
+
+    << "StringToDoubleC"
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_parse_fn<_StringToDoubleConverter>(str_arr, width, num)
+    << " time: " << timer(time_parse_fn<_StringToDoubleConverter>, str_arr, width, num) / num 
     << std::endl
 
     ;
