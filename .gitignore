@@ -9,3 +9,5 @@ data/*.csv
 vendor/googletest/make/gtest_main.a
 vendor/googletest/make/sample1_unittest
 build/
+strtod/test_s2dc
+strtod/test_exh

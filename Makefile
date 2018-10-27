@@ -55,6 +55,8 @@ strtod/test_s2dc:   	    double-conversion/bignum.o \
                             double-conversion/fixed-dtoa.o \
                             double-conversion/strtod.o
 
+strtod/test_exh:    	    strtod/parse_double_7.o
+
 strtod/test_intstrtod:	    strtod/intstrtod.o
 
 strtod/test:   	    	    strtod/parse_double_6.o
