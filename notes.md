@@ -102,3 +102,6 @@ Jaffer:
 Gay:
 - http://www.netlib.org/fp/
 
+general ref:
+- https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
+- http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.451.6099&rep=rep1&type=pdf
