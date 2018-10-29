@@ -55,7 +55,7 @@ test(
     auto const val = parse_double_7(buf, buf + len);
     assert(!is_parse_error(val));
     if (!same_double(val, ref))
-      printf("%19.16e %19.16e '%s'\n", ref, val, buf);
+      printf("%20.17e %20.17e '%s'\n", ref, val, buf);
   }
 }
 
