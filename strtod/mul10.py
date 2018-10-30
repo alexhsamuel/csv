@@ -20,10 +20,11 @@ def scale(base, exp10, *, debug=False):
 
         def show():
             if debug:
-                print(f"{mant:088b} {exp2:3d} {mant * 2.0**exp2}")
+                print(f"{mant:0128b} {exp2:4d} {mant * 2.0**exp2}")
         show()
 
-        shift = 64  # FIXME: Determine.
+        # shift = 64  # FIXME: Determine.
+        shift = 127 - mant.bit_length()
         mant = base << shift
         exp2 = -shift
         show()
@@ -51,7 +52,7 @@ def scale(base, exp10, *, debug=False):
             # FIXME: Does this rounding interact correctly with division
             # rounding?
             drop = mant & m
-            round_up = drop > (1 << (n - 1))
+            round_up = drop >= (1 << (n - 1))
             mant >>= n
             exp2 += n
             show()
@@ -90,13 +91,13 @@ if __name__ == "__main__":
 
         act = float(f"{base}e{exp10}")
         val = scale(base, exp10, debug=True)
-        print(f"act {act:20.17e} {act.hex()}")
-        print(f"val {val:20.17e} {val.hex()}")
+        print(f"act {act:23.30e} {act.hex()}")
+        print(f"val {val:23.30e} {val.hex()}")
 
     else:
-        for _ in range(100):
-            base = random.randint(1, 10 ** random.randint(1, 20))
-            exp10 = random.randint(-20, 20)
+        for _ in range(1000000):
+            base = random.randint(1, 10 ** random.randint(1, 16))
+            exp10 = random.randint(-17, 17)
             if exp10 >= 0:
                 dec = str(base * 10 ** exp10)
             elif exp10 < 0:
@@ -108,5 +109,5 @@ if __name__ == "__main__":
             act = float(dec)
             val = scale(base, exp10)
             if act != val:
-                print(f"{base:20d} {exp10:3d} {dec:40s} {act:20.17e} {val:20.17e}")
+                print(f"{base:20d} {exp10:3d} {dec:40s} {act:23.30e} {val:23.30e}")
 
