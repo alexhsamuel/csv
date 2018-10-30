@@ -26,13 +26,9 @@ def scale(base, exp10, *, debug=False):
 
         else:
             shift = 127 - base.bit_length()
-            mant = base << shift
-            exp2 = -shift
-            show()
-
             pow5 = 5 ** -exp10
-            mant //= pow5
-            exp2 += exp10
+            mant = (base << shift) // pow5
+            exp2 = exp10 - shift
             show()
 
         # Shift mantissa to normalized position.  The MSB should be in position
@@ -42,17 +38,11 @@ def scale(base, exp10, *, debug=False):
             pass
         elif bits > 53:
             n = bits - 53
-            m = (1 << n) - 1
-            # FIXME: Does this rounding interact correctly with division
-            # rounding?
-            drop = mant & m
-            round_up = drop >= (1 << (n - 1))
+            round_up = (mant >> (n - 1)) & 1 > 0
             mant >>= n
             exp2 += n
             show()
             if round_up:
-                if debug:
-                    print(f"round up {drop:x} {1 << (n - 1):x}")
                 mant += 1
             show()
         else:
@@ -98,8 +88,8 @@ if __name__ == "__main__":
                     dec = "0" * (-exp10 - len(dec)) + dec
                 dec = dec[: exp10] + "." + dec[exp10 :]
 
-            # if len(dec) > 18:
-            #     continue
+            if len(dec) > 18:
+                continue
 
             act = float(dec)
             val = scale(base, exp10)
