@@ -1,7 +1,8 @@
+import random
 import struct
 import sys
 
-def scale(base, exp10):
+def scale(base, exp10, *, debug=False):
     if exp10 == 0:
         return float(base)
 
@@ -18,10 +19,11 @@ def scale(base, exp10):
         exp2 = 0
 
         def show():
-            print(f"{mant:088b} {exp2:3d} {mant * 2.0**exp2}")
+            if debug:
+                print(f"{mant:088b} {exp2:3d} {mant * 2.0**exp2}")
         show()
 
-        shift = 64
+        shift = 64  # FIXME: Determine.
         mant = base << shift
         exp2 = -shift
         show()
@@ -40,19 +42,22 @@ def scale(base, exp10):
             exp2 -= -exp10
         show()
 
-        # Shift mantissa to normalized position.  The MSB should be in position 53.
+        # Shift mantissa to normalized position.  The MSB should be in position
+        # 53.
         bits = mant.bit_length()
         if bits >= 53:
             n = bits - 53
             m = (1 << n) - 1
-            # FIXME: Does this rounding interact correctly with division rounding?
+            # FIXME: Does this rounding interact correctly with division
+            # rounding?
             drop = mant & m
             round_up = drop > (1 << (n - 1))
             mant >>= n
             exp2 += n
             show()
             if round_up:
-                print(f"round up {drop:x} {1 << (n - 1):x}")
+                if debug:
+                    print(f"round up {drop:x} {1 << (n - 1):x}")
                 mant += 1
             show()
         else:
@@ -76,13 +81,32 @@ def scale(base, exp10):
         return val
 
 
-_, base, exp10 = sys.argv
-base = int(base)
-exp10 = int(exp10)
-print(f"base={base} exp10={exp10}")
+if __name__ == "__main__":
+    if len(sys.argv) == 3:
+        _, base, exp10 = sys.argv
+        base = int(base)
+        exp10 = int(exp10)
+        print(f"base={base} exp10={exp10}")
 
-act = float(f"{base}e{exp10}")
-val = scale(base, exp10)
-print(f"act {act:20.17e} {act.hex()}")
-print(f"val {val:20.17e} {val.hex()}")
+        act = float(f"{base}e{exp10}")
+        val = scale(base, exp10, debug=True)
+        print(f"act {act:20.17e} {act.hex()}")
+        print(f"val {val:20.17e} {val.hex()}")
+
+    else:
+        for _ in range(100):
+            base = random.randint(1, 10 ** random.randint(1, 20))
+            exp10 = random.randint(-20, 20)
+            if exp10 >= 0:
+                dec = str(base * 10 ** exp10)
+            elif exp10 < 0:
+                dec = str(base)
+                if len(dec) < -exp10:
+                    dec = "0" * (-exp10 - len(dec)) + dec
+                dec = dec[: exp10] + "." + dec[exp10 :]
+
+            act = float(dec)
+            val = scale(base, exp10)
+            if act != val:
+                print(f"{base:20d} {exp10:3d} {dec:40s} {act:20.17e} {val:20.17e}")
 
