@@ -95,7 +95,7 @@ if __name__ == "__main__":
         print(f"val {val:23.30e} {val.hex()}")
 
     else:
-        for _ in range(1000000):
+        for _ in range(100000):
             base = random.randint(1, 10 ** random.randint(1, 16))
             exp10 = random.randint(-17, 17)
             if exp10 >= 0:
