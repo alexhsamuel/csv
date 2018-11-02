@@ -1,7 +1,9 @@
 #include <assert.h>
 #include <ctype.h>
 #include <limits.h>
+#include <math.h>  // FIXME
 #include <stdint.h>
+#include <stdio.h>  // FIXME
 
 #include "parse_double.h"
 
@@ -10,15 +12,7 @@
 
 //------------------------------------------------------------------------------
 
-union Double {
-  double value;
-  struct {
-    unsigned sign : 1;
-    unsigned exponent : 11;
-    unsigned long mantissa : 52;
-  } bits;
-};
-
+static int const pd7_debug = 0;
 
 static inline long
 pow5(
@@ -64,10 +58,10 @@ pow5(
 union double_bits {
   double val;
   struct {
-    unsigned int  sign :  1;
-    unsigned int  exp  : 11;
     unsigned long mant : 52;
-  } bits;
+    unsigned int  exp  : 11;
+    unsigned int  sign :  1;
+  } __attribute__ ((__packed__)) bits;
 };
 
 
@@ -82,6 +76,22 @@ inline double shift_exp(
 }
 
 
+union int128_bits {
+  unsigned __int128 val;
+  unsigned long parts[2];
+};
+
+
+inline void
+print128(
+  unsigned __int128 const val)
+{
+  union int128_bits b;
+  b.val = val;
+  printf("%016lx %016lx", b.parts[1], b.parts[0]);
+}
+
+
 inline int clz128(
   unsigned __int128 const x)
 {
@@ -90,10 +100,27 @@ inline int clz128(
 }
 
 
-inline double scale(
+static inline void
+show(
+  char const* const label,
+  unsigned __int128 const mant,
+  int exp2)
+{
+  printf("%s: mant=", label);
+  print128(mant);
+  double const val = (double) mant * pow(2, exp2);
+  printf(" exp2=%4d val=%20.17e\n", exp2, val);
+}
+
+
+static double 
+scale(
   unsigned long const base,
   int const exp10)
 {
+  if (pd7_debug)
+    printf("scale(base=%016lx, exp10=%3d)\n", base, exp10);
+
   if (unlikely(base == 0))
     return 0;
 
@@ -127,11 +154,18 @@ inline double scale(
   else {
     // We shift the base as far as we can into unsigned __int128, to maximize
     // precision in division.
-    int const shift = __builtin_clzl(base);
+    int const shift = 64 + __builtin_clzl(base);
     mant = (unsigned __int128) base << shift;
+    if (pd7_debug) {
+      show("start", base, 0);
+      printf("shift=%d\n", shift);
+      show("shift", mant, -shift);
+    }
     // Multiply mantissa by 5s; track 2s in the exponent.
     mant /= pow5(-exp10);
     exp2 = exp10 - shift;
+    if (pd7_debug)
+      show("div10", mant, exp2);
   }
 
   // Now build the normalized 52-bit mantissa.
@@ -141,28 +175,51 @@ inline double scale(
   int const bits = 128 - clz128(mant);
   if (likely(bits > 53)) {
     // Shift the mantissa right, with rounding, while increasing the exponent.
-    int const shift = bits - 52;
+    int const shift = bits - 54;
+    if (pd7_debug)
+      printf("shift=%3d\n", shift);
     // Round up based the first bit we'll shift off.
     mant52 = mant >> shift;
+    exp2 += shift;
+    if (pd7_debug)
+      show("nrm52", mant52, exp2);
     mant52 = (mant52 + 1) >> 1;
-    exp2 += shift + 1;
+    exp2 += 1;
+    if (pd7_debug)
+      show("round", mant52, exp2);
   }
   else if (likely(bits < 53)) {
     // Shift the mantissa left while reducing the exponent.
     int const shift = bits - 53;
-    mant <<= shift;
+    mant52 = (unsigned long) mant << shift;
     exp2 -= shift;
   }
   else
     // Perfect; nothing to do.
-    ;
+    mant52 = mant;
 
   // Build the double.  Drop bit 53 of the mantissa; it's implied.
+#if 0
   union double_bits result;
+  result.val = 0;
+  if (pd7_debug)
+    printf("result=%016lx\n", *(unsigned long*) &result.val);
+  result.bits.exp = exp2 + 1023 + 52;
+  if (pd7_debug)
+    printf("result=%016lx\n", *(unsigned long*) &result.val);
   result.bits.sign = 0;
-  result.bits.exp = exp2 + 1075;
-  result.bits.mant = mant & 0xfffffffffffffl;
+  result.bits.mant = mant52 & 0xfffffffffffffl;
+  if (pd7_debug)
+    printf("result=%016lx\n", *(unsigned long*) &result.val);
   return result.val;
+#else
+  unsigned long result =
+    (unsigned long) (exp2 + 1023 + 52) << 52
+    | (mant52 & 0xfffffffffffffl);
+  if (pd7_debug)
+    printf("result=%016lx\n", result);
+  return *(double*) &result;
+#endif
 }
 
 
