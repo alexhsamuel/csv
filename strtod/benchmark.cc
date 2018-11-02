@@ -46,7 +46,7 @@ rand_arr(
 {
   char* result = new char[num * width];
   for (size_t i = 0; i < num; ++i)
-    snprintf(result + i * width, width, "%.18f", rand(max));
+    snprintf(result + i * width, width, "%.8f", rand(max));
   return result;
 }
 
@@ -147,6 +147,7 @@ extern "C" double parse_double_3(char const*, char const*);
 extern "C" double parse_double_4(char const*, char const*);
 extern "C" double parse_double_5(char const*, char const*);
 extern "C" double parse_double_6(char const*, char const*);
+extern "C" double parse_double_7(char const*, char const*);
 
 using parse_double_type = double (*)(char const*, char const*);
 
@@ -188,7 +189,7 @@ main(
   };
 
   size_t num = 1024 * 1024;
-  size_t width = 32;
+  size_t width = 10;
   double scale = 1;
   double time = 2;
 
@@ -270,6 +271,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_parse_fn<parse_double_6>(str_arr, width, num)
     << " time: " << timer(time_parse_fn<parse_double_6>, str_arr, width, num) / num
+    << std::endl
+
+    << "parse_double_7 "
+    << " val="
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_parse_fn<parse_double_7>(str_arr, width, num)
+    << " time: " << timer(time_parse_fn<parse_double_7>, str_arr, width, num) / num
     << std::endl
 
     << "strtod         "
