@@ -1,6 +1,3 @@
-See also:
-- https://github.com/lemire/fast_double_parser
-
 ```py
 In [2]: %timeit pandas.read_csv("data/gencsv-1m.csv")
 4.45 s ± 34.4 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
@@ -105,6 +102,10 @@ Jaffer:
 Gay:
 - http://www.netlib.org/fp/
 
+other:
+- https://github.com/lemire/fast_double_parser
+
 general ref:
 - https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
 - http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.451.6099&rep=rep1&type=pdf
+
