@@ -1,6 +1,7 @@
+#include <ctime>
 #include <getopt.h>
 #include <iostream>
-#include <ctime>
+#include <random>
 #include <vector>
 
 #include "timing.hh"
@@ -18,37 +19,42 @@ extern "C" {
 
   double str2dbl(char const*);
 
-  // FIXME: Real signature is char const**.
-  double intstrtod(char const*, char**);
-  double intstrtod_unrolled1(char const*, char**);
-  double intstrtod_unrolled2(char const*, char**);
-
   double strtod_gay(const char*, char**);
 
 }
 
 //------------------------------------------------------------------------------
 
-inline double
-rand(
-  double const max)
-{
-  auto constexpr den = 1.0 / RAND_MAX;
-  return random() * den * max;
-}
+namespace rnd {
 
+static std::default_random_engine
+rng;
+
+static std::uniform_int_distribution<int>
+digit_dist(48, 57);
+
+inline char
+digit() {
+  return digit_dist(rng);
+}
 
 inline char*
-rand_arr(
-  double const max,
+double_arr(
   size_t const num,
-  size_t const width)
+  size_t const width,
+  size_t const dec)
 {
-  char* result = new char[num * width];
-  for (size_t i = 0; i < num; ++i)
-    snprintf(result + i * width, width, "%.8f", rand(max));
-  return result;
+  char* arr = new char[num * width];
+  for (size_t i = 0; i < num; ++i) {
+    for (size_t j = 0; j < width - 1; ++j)
+     arr[i * width + j] = j == dec ? '.' : digit();
+    arr[i * width + width - 1] = 0;
+  }
+  return arr;
 }
+
+
+}  // namespace rnd
 
 
 template<double (*F)(char const*, char**)>
@@ -143,9 +149,6 @@ is_parse_error(
 }
 
 
-extern "C" double parse_double_3(char const*, char const*);
-extern "C" double parse_double_4(char const*, char const*);
-extern "C" double parse_double_5(char const*, char const*);
 extern "C" double parse_double_6(char const*, char const*);
 extern "C" double parse_double_7(char const*, char const*);
 
@@ -189,13 +192,14 @@ main(
   };
 
   size_t num = 1024 * 1024;
-  size_t width = 10;
-  double scale = 1;
+  size_t width = 8;
+  double dec = 1;
   double time = 2;
+  bool show_numbers = false;
 
   char ch;
   while ((ch = getopt_long(
-            argc, argv, "n:w:s:t:", long_options, nullptr)) != -1)
+            argc, argv, "n:w:d:t:S", long_options, nullptr)) != -1)
     switch (ch) {
     case 'n':
       num = (size_t) atol(optarg);
@@ -203,20 +207,23 @@ main(
     case 'w':
       width = (size_t) atol(optarg);
       break;
-    case 's':
-      scale = wrap_strtod<strtod>(optarg);
+    case 'd':
+      dec = wrap_strtod<strtod>(optarg);
       break;
     case 't':
       time = wrap_strtod<strtod>(optarg);
+      break;
+    case 'S':
+      show_numbers = true;
       break;
     default:
       std::cerr << "invalid usage\n";
       exit(EXIT_FAILURE);
     }
 
-  auto const str_arr = rand_arr(scale, num, width);
+  auto const str_arr = rnd::double_arr(num, width, dec);
 
-  if (false) {
+  if (show_numbers) {
     for (size_t i = 0; i < num; ++i)
       std::cout << &str_arr[i * width] << "\n";
     std::cout << std::flush;
@@ -224,46 +231,11 @@ main(
 
   Timer timer{time, 0.25};
   std::cout 
-    << "intstrtod      "
+    << "strtod         "
     << " val=" 
     << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<wrap_strtod<intstrtod>>(str_arr, width, num)
-    << " time: " << timer(time_fn<wrap_strtod<intstrtod>>, str_arr, width, num) / num 
-    << std::endl
-
-    << "intstrtod_unr1 "
-    << " val=" 
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<wrap_strtod<intstrtod_unrolled1>>(str_arr, width, num)
-    << " time: " << timer(time_fn<wrap_strtod<intstrtod_unrolled1>>, str_arr, width, num) / num 
-    << std::endl
-
-    << "intstrtod_unr2 "
-    << " val=" 
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<wrap_strtod<intstrtod_unrolled2>>(str_arr, width, num)
-    << " time: " << timer(time_fn<wrap_strtod<intstrtod_unrolled2>>, str_arr, width, num) / num 
-    << std::endl
-
-    << "parse_double_3 "
-    << " val="
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_parse_fn<parse_double_3>(str_arr, width, num)
-    << " time: " << timer(time_parse_fn<parse_double_3>, str_arr, width, num) / num
-    << std::endl
-
-    << "parse_double_4 "
-    << " val="
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_parse_fn<parse_double_4>(str_arr, width, num)
-    << " time: " << timer(time_parse_fn<parse_double_4>, str_arr, width, num) / num
-    << std::endl
-
-    << "parse_double_5 "
-    << " val="
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_parse_fn<parse_double_5>(str_arr, width, num)
-    << " time: " << timer(time_parse_fn<parse_double_5>, str_arr, width, num) / num
+    << time_fn<wrap_strtod<strtod>>(str_arr, width, num)
+    << " time: " << timer(time_fn<wrap_strtod<strtod>>, str_arr, width, num) / num 
     << std::endl
 
     << "parse_double_6 "
@@ -278,13 +250,6 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_parse_fn<parse_double_7>(str_arr, width, num)
     << " time: " << timer(time_parse_fn<parse_double_7>, str_arr, width, num) / num
-    << std::endl
-
-    << "strtod         "
-    << " val=" 
-    << std::fixed << std::setw(20) << std::setprecision(10)
-    << time_fn<wrap_strtod<strtod>>(str_arr, width, num)
-    << " time: " << timer(time_fn<wrap_strtod<strtod>>, str_arr, width, num) / num 
     << std::endl
 
     << "xstrtod        "

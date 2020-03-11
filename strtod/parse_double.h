@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -25,6 +27,7 @@ is_parse_error(
 
 
 extern double parse_double_6(char const*, char const*);
+extern double parse_double_7(char const*, char const*);
 
 
 #ifdef __cplusplus

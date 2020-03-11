@@ -77,7 +77,9 @@ Requirements:
 - Types of columns, or convert automatically.
 - Fixed-length or object strings?  Or cut over automatically?
 - mmap- and non mmap-based APIs.
-- UTF-8 support
+- UTF-8 support.
+- Date and datetime support.
+- Auto or manual categorical support.
 
 ```py
 from ntab.io.delimited import parse_arrays
@@ -89,3 +91,20 @@ arrs = parse_arrays(
 )
 ```
 
+---
+
+# strtod
+
+- https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
+
+- http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.451.6099&rep=rep1&type=pdf
+
+Jaffer:
+- https://arxiv.org/pdf/1310.8121v6.pdf
+
+Gay:
+- http://www.netlib.org/fp/
+
+general ref:
+- https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
+- http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.451.6099&rep=rep1&type=pdf

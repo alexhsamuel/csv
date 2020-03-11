@@ -186,8 +186,8 @@ parse_double_6(
   while (unlikely(p < end)) {
     int const d = *p++ - '0';
     if (likely(0 <= d && d <= 9))
-      // Remaining digits don't matter.
-      ;
+      // Remaining digits don't matter; insufficient precision.
+      exp += 1;
     else if (likely(d == 'e' - '0' || d == 'E' - '0')) 
       goto exp;
     else if (d == -48)  // FIXME: This should not be needed.

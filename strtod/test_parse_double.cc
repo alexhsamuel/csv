@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstring>
 
 #include "strtod/parse_double.h"
@@ -10,6 +11,15 @@ parse6(
   char const* const ptr)
 {
   return parse_double_6(ptr, ptr + strlen(ptr));
+}
+
+
+inline bool
+almost(
+  double const x,
+  double const y)
+{
+  return x == y || y == nextafter(x, y);
 }
 
 
@@ -43,6 +53,13 @@ TEST(no_integer, parse_double_6) {
   EXPECT_EQ(parse6("-.5"      ), -0.5);
   EXPECT_EQ(parse6("-.125"    ), -0.125);
   EXPECT_EQ(parse6("-.0078125"), -0.0078125);
+}
+
+TEST(exact, parse_double_6) {
+  EXPECT_EQ(parse6("0.0000152587890625"), 0.0000152587890625);
+  EXPECT_EQ(parse6("0.9999694824218750"), 0.9999694824218750);
+  EXPECT_EQ(parse6("0.9999847412109375"), 0.9999847412109375);
+  // EXPECT_TRUE(almost(parse6("0.9999847412109375"), 0.9999847412109375));
 }
 
 TEST(huge, parse_double_6) {
