@@ -1,3 +1,6 @@
+See also:
+- https://github.com/lemire/fast_double_parser
+
 ```py
 In [2]: %timeit pandas.read_csv("data/gencsv-1m.csv")
 4.45 s ± 34.4 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
