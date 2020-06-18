@@ -2,7 +2,7 @@
 .SUFFIXES: 
 
 CFLAGS	    	= -std=c99   -Wall -I . -O3 -g # -DNDEBUG
-CXXFLAGS    	= -std=c++14 -Wall -I . -O3 -g -fpermissive -fPIC # -DNDEBUG
+CXXFLAGS    	= -std=c++14 -Wall -I . -I vendor/fast_double_parser/include -O3 -g -fpermissive -fPIC # -DNDEBUG
 LDLIBS          = -lpthread
 
 # How to compile a C or C++ file, and generate automatic dependencies.

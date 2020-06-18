@@ -6,6 +6,7 @@
 
 #include "timing.hh"
 #include "double-conversion/double-conversion.h"
+#include "fast_double_parser.h"
 
 extern "C" {
 
@@ -111,6 +112,17 @@ _StringToDoubleConverter(
   assert(count > 0);
   return val;
 }
+
+inline double
+_fast_double_parser(
+  char const* s)
+{
+  double val;
+  auto isok = fast_double_parser::parse_number(s, &val);
+  assert(isok);
+  return val;
+}
+
 
 
 using strtod_type = double (*)(char const*);
@@ -285,6 +297,13 @@ main(
     << std::fixed << std::setw(20) << std::setprecision(10)
     << time_parse_fn<_StringToDoubleConverter>(str_arr, width, num)
     << " time: " << timer(time_parse_fn<_StringToDoubleConverter>, str_arr, width, num) / num 
+    << std::endl
+
+    << "fast_double_par"
+    << " val=" 
+    << std::fixed << std::setw(20) << std::setprecision(10)
+    << time_fn<_fast_double_parser>(str_arr, width, num)
+    << " time: " << timer(time_fn<_fast_double_parser>, str_arr, width, num) / num 
     << std::endl
 
     ;
