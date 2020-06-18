@@ -1,0 +1,3 @@
+[submodule "vendor/fast_double_parser"]
+	path = vendor/fast_double_parser
+	url = https://github.com/lemire/fast_double_parser.git
