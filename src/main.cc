@@ -39,7 +39,7 @@ load_file(
     std::vector<std::future<Array>> results;
     // FIXME: Use std::transform.
     for (auto const& col : cols)
-      results.push_back(pool.enqueue(parse_array, &col, true));
+      results.push_back(pool.enqueue(parse_array_auto, &col, true));
 
     for (auto&& result : results)
       std::cout << result.get();

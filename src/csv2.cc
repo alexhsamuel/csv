@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "strtod/parse_double.h"
+#include "fast_double_parser.h"
 #include "csv2.hh"
 
 // FIXME: UTF-8 (and other encodings?)
@@ -206,11 +206,11 @@ parse<float64_t>(
     // Empty string.
     return {};
 
-  auto const val = parse_double_6(buf.ptr, buf.ptr + buf.len);
-  if (is_parse_error(val))
-    return {};
-  else
+  double val;
+  if (fast_double_parser::parse_number(buf.ptr, &val))
     return val;
+  else
+    return {};
 }
 
 
@@ -268,10 +268,8 @@ parse_number_arr(
       if (*val > max)
         max = *val;
     }
-    else {
-      std::cerr << "FAIL: [" << field << "]\n";
+    else
       return {};
-    }
   }
 
   assert(vals.size() == len);
@@ -280,7 +278,7 @@ parse_number_arr(
 
 
 Array
-parse_array(
+parse_array_auto(
   Column const* col,
   bool header)
 {

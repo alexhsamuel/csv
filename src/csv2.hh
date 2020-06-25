@@ -234,7 +234,7 @@ split_columns(
   char const quote='"');
 
 extern Array
-parse_array(
+parse_array_auto(
   Column const* col,
   bool header=true);
 

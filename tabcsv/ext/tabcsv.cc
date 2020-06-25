@@ -10,7 +10,7 @@
 
 #include "ThreadPool.hh"
 #include "csv2.hh"
-#include "parse_double.h"
+#include "fast_double_parser.h"
 
 PyObject*
 load_file(
@@ -40,7 +40,7 @@ load_file(
     std::vector<std::future<Array>> results;
     // FIXME: Use std::transform.
     for (auto const& col : cols)
-      results.push_back(pool.enqueue(parse_array, &col, true));
+      results.push_back(pool.enqueue(parse_array_auto, &col, true));
 
     for (auto&& result : results) {
       Array const& arr = result.get();
@@ -122,7 +122,7 @@ fn_load_file(
 
 
 static PyObject*
-fn_parse_double_6(
+fn_parse_number(
   PyObject* const self,
   PyObject* const args)
 {
@@ -132,13 +132,19 @@ fn_parse_double_6(
   if (!PyArg_ParseTuple(args, "s#", &str, &len))
     return NULL;
 
-  return PyFloat_FromDouble(parse_double_6(str, str + len));
+  double val;
+  if (fast_double_parser::parse_number(str, &val))
+    return PyFloat_FromDouble(val);
+  else {
+    PyErr_SetString(PyExc_ValueError, "can't parse number");
+    return NULL;
+  }
 }
 
 
 static PyMethodDef methods[] = {
   {"load_file", (PyCFunction) fn_load_file, METH_VARARGS | METH_KEYWORDS, NULL},
-  {"parse_double_6", (PyCFunction) fn_parse_double_6, METH_VARARGS, NULL},
+  {"parse_number", (PyCFunction) fn_parse_number, METH_VARARGS, NULL},
   {NULL, NULL, 0, NULL}
 };
 

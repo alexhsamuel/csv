@@ -11,7 +11,12 @@ setup(
         Extension(
             "tabcsv.ext",
             extra_compile_args  =["-std=c++14"],
-            include_dirs        =["./src", "./strtod", *get_numpy_include_dirs(), ],
+            include_dirs        =[
+                "./src",
+                "./strtod",
+                "./vendor/fast_double_parser/include",
+                *get_numpy_include_dirs(),
+            ],
             sources             =glob("tabcsv/ext/*.cc"),
             library_dirs        =["./src"],
             libraries           =["csv2"],

@@ -1,7 +1,7 @@
-from   .ext import load_file, parse_double_6
+from   .ext import load_file, parse_number
 
 __all__ = (
     "load_file",
-    "parse_double_6",
+    "parse_number",
 )
 
