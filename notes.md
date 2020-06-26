@@ -90,6 +90,11 @@ arrs = parse_arrays(
 
 ---
 
+# strtoi
+
+- https://kholdstare.github.io/technical/2020/05/26/faster-integer-parsing.html
+
+
 # strtod
 
 - https://cs.stackexchange.com/questions/80952/convert-a-decimal-floating-point-number-into-a-binary-floating-point-number
